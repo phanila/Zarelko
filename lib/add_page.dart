@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:zarelko/database/database.dart';
 
-import 'main.dart';
 
 class AddPage extends StatefulWidget {
   @override

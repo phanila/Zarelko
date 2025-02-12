@@ -19,46 +19,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
-      child: MaterialApp(
+    return MaterialApp(
         title: 'Żarełko',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),
         home: MyHomePage(title:'Żarełko'),
-      ),
     );
-  }
-}
-
-class MyAppState extends ChangeNotifier {
-  var foodList = <Food>[];
-
-   MyAppState() {
-  //   foodList.add(Food(
-  //       'test', 'testowy', DateTime.parse('1969-07-20 20:18:04Z'), "TestType",
-  //       "Nowhere"));
-  //   foodList.add(Food(
-  //       'test2', 'testowy', DateTime(2025,02,13), "TestType",
-  //       "Nowhere"));
-  //   foodList.add(Food(
-  //       'test3', 'testowy', DateTime.parse('2026-07-20 20:18:04Z'), "TestType",
-  //       "Nowhere"));
-  }
-  void addFood(Food food) {
-    foodList.add(food);
-    notifyListeners();
-  }
-  void changeFood(food,newFood) {
-    foodList.remove(food);
-    foodList.add(food);
-    notifyListeners();
-  }
-  void deleteFood(food) {
-    foodList.remove(food);
-    notifyListeners();
   }
 }
 
@@ -76,24 +44,36 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(title),
+        actions: [
+          ElevatedButton(onPressed: (){}, child: Icon(Icons.sync))
+        ],
       ),
       body: StreamBuilder(stream: database.getAllFood(), builder: (context,snapshot) {
+        if (snapshot.hasError){
+          return Text("Error from database");
+        }
         List<FoodEntry>? foodList = snapshot.data;
-        return foodList!.isEmpty ? Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-              child:Image(image: AssetImage("assets/nofood.jpg")
-           )
-          )
-        ) :
-        Center(
-          child: ListView.builder(
-          itemCount: foodList.length,
-          itemBuilder: (BuildContext context, int index) {
-            return FoodListTile(food: foodList[index]);
-          }
-          )
-        );
+        switch(snapshot.connectionState){
+          case ConnectionState.waiting:
+          case ConnectionState.none:
+            return LinearProgressIndicator();
+          case ConnectionState.active:
+          case ConnectionState.done:
+            return foodList!.isEmpty ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                  child:Image(image: AssetImage("assets/nofood.jpg")
+               )
+              )
+            ) :
+            Center(
+              child: ListView.builder(
+              itemCount: foodList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return FoodListTile(food: foodList[index]);
+              }
+              )
+        );}
       }),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
@@ -111,7 +91,7 @@ class FoodListTile extends StatelessWidget {
   final FoodEntry food;
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
+    var database = context.watch<AppDatabase>();
     var color = Colors.white;
     if (DateTime.now().isAfter(food.expiryDate)){
       color = Colors.red;
@@ -141,7 +121,7 @@ class FoodListTile extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        appState.deleteFood(food);
+                        database.deleteFoodRecord(food.id);
                         Navigator.pop(context);},
                       child: const Text('Yes'),
                     ),
@@ -158,15 +138,6 @@ class FoodListTile extends StatelessWidget {
         )
     );
   }
-}
-class Food {
-  final String name;
-  final String desc;
-  final String type;
-  final String location;
-  final DateTime expiryDate;
-  Food(this.name, this.desc, this.expiryDate, this.type,this.location);
-
 }
 Future<void> _navigateAndDisplayAddPage(BuildContext context) async {
 

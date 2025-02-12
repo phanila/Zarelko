@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -38,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
 
   Stream<List<FoodEntry>> foodsInCategory(String? category) {
     if (category == null) {
-      return (select(foods)..where((f) => isNull(f.category))).watch();
+      return (select(foods)..where((f) => f.category.isNull())).watch();
     } else {
       return (select(foods)..where((f) => f.category.equals(category)))
           .watch();
@@ -46,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   }
   // Get all Food
   Stream<List<FoodEntry>> getAllFood() {
-    return (select(foods)..where((tbl) => tbl.id.isNotNull())).watch();
+    return (select(foods)..where((tbl) => tbl.id.isNotNull())..orderBy([(tbl) => OrderingTerm.asc(tbl.expiryDate)])).watch();
   }
 
   // Delete a food by id
