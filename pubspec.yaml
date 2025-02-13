@@ -37,8 +37,12 @@ dependencies:
   provider: ^6.1.2
   intl: ^0.20.2
 
+  # For local database
   drift: ^2.25.0
   drift_flutter: ^0.2.4
+
+  # for slidable listView
+  flutter_slidable: ^4.0.0
 
 dev_dependencies:
   flutter_test:

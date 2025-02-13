@@ -47,7 +47,7 @@ class _AddPageState extends State<AddPage> {
                   _desc = value!;
                 }),
                 const SizedBox(height: 12),
-                _buildTextFormField("Type", "You must enter a type", (value) {
+                _buildDropDownFormField("Category", (value) {
                   _type = value!;
                 }),
                 const SizedBox(height: 12),
@@ -86,6 +86,41 @@ class _AddPageState extends State<AddPage> {
         return null;
       },
       onSaved: onSaved,
+    );
+  }
+
+  Widget _buildDropDownFormField(
+      String label,
+      Function(String?) onChanged,
+      ) {
+    var categoryList =["1","2"];
+    return DropdownButtonFormField(
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      ),
+      items: categoryList.map((p) {
+        return DropdownMenuItem(value: p,child: Text(p),);
+      }).toList()..add(DropdownMenuItem(value: "3",child: TextButton(onPressed: () => showDialog<String>(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('AlertDialog Title'),
+            content: const Text('AlertDialog description'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'Cancel'),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'OK'),
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+      ),
+          child: Text("New category")),)),
+      onChanged: onChanged,
     );
   }
 
@@ -134,7 +169,6 @@ class _AddPageState extends State<AddPage> {
           Navigator.pop(context, _name);
         }
       },
-      child: const Text("Add Food"),
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -142,6 +176,7 @@ class _AddPageState extends State<AddPage> {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
+      child: const Text("Add Food"),
     );
   }
 }

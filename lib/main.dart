@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:core';
 import 'package:intl/intl.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:zarelko/add_page.dart';
 import 'package:zarelko/database/database.dart';
 import 'app_extensions.dart';
@@ -93,50 +94,68 @@ class FoodListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var database = context.watch<AppDatabase>();
     var color = Colors.white;
+    var opened = false;
     if (DateTime.now().isAfter(food.expiryDate)){
       color = Colors.red;
     }
     else if (food.expiryDate.difference(DateTime.now()).inDays <= 7){
       color = Colors.amber;
     }
-    return Card(
-        color: color,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+    return Padding(
+          padding: const EdgeInsets.all(10),
 
-          child: ExpansionTile(
-            title:Row(children: [Text(food.name.capitalize(),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22),),Expanded(
-              child: Container(),
-            ),
-              Text(DateFormat("E dd.MM.yyyy").format(food.expiryDate))]),
-            subtitle: Text(food.category!),
-            trailing: IconButton(onPressed: ()  => showDialog<String>(
-                context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: const Text('Are you sure?'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('No'),
+          child: Slidable(
+              endActionPane: ActionPane(
+                motion: DrawerMotion(),
+                children: [
+                  SlidableAction(
+                    onPressed: (context) {},
+                    backgroundColor: Color(0xFF0392CF),
+                    foregroundColor: Colors.white,
+                    icon: Icons.edit,
+                    label: 'Edit',
+                  ),
+                  SlidableAction(
+                    onPressed: (context) => showDialog<String>(
+                      context: context,
+                      builder: (BuildContext context) => AlertDialog(
+                        title: const Text('Are you sure?'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('No'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              database.deleteFoodRecord(food.id);
+                              Navigator.pop(context);},
+                            child: const Text('Yes'),
+                          ),
+                        ],
+                      ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        database.deleteFoodRecord(food.id);
-                        Navigator.pop(context);},
-                      child: const Text('Yes'),
-                    ),
-                  ],
-                ),
-            ),
-                    icon: Icon(Icons.delete_outline)
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    icon: Icons.delete_outline,
+                    label: 'Delete',
+                  ),
+                ],
               ),
-            children: [
-            Text(food.desc!),
-              Text(food.location!)
-            ]
+            child: Card(
+              color: color,
+              child:ListTile(
+                title:Row(children: [Text(food.name.capitalize(),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22),),Expanded(
+                  child: Container(),
+                ),
+                  Text(DateFormat("E dd.MM.yyyy").format(food.expiryDate))]),
+                subtitle: Text("${food.desc!}\n${food.location!}"),
+                trailing: TextButton( onPressed: () {  },
+                child: Text("Open")
+                )
+              )
+            )
           ),
-        )
-    );
+        );
   }
 }
 Future<void> _navigateAndDisplayAddPage(BuildContext context) async {
