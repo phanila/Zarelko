@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 import 'dart:core';
 import 'package:intl/intl.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:zarelko/add_page.dart';
+import 'package:zarelko/add_food.dart';
+import 'package:zarelko/add_product.dart';
 import 'package:zarelko/database/database.dart';
 import 'app_extensions.dart';
+import 'homePage.dart';
+import 'productPage.dart';
 
 void main() {
   runApp(Provider<AppDatabase>(
@@ -31,11 +34,17 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var currentIndex = 0;
   @override
   Widget build(BuildContext context) {
   //   var appState = context.watch<MyAppState>();
@@ -44,125 +53,43 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title),
+        title: Text(widget.title),
         actions: [
           ElevatedButton(onPressed: (){}, child: Icon(Icons.sync))
         ],
       ),
-      body: StreamBuilder(stream: database.getAllFood(), builder: (context,snapshot) {
-        if (snapshot.hasError){
-          return Text("Error from database");
-        }
-        List<FoodEntry>? foodList = snapshot.data;
-        switch(snapshot.connectionState){
-          case ConnectionState.waiting:
-          case ConnectionState.none:
-            return LinearProgressIndicator();
-          case ConnectionState.active:
-          case ConnectionState.done:
-            return foodList!.isEmpty ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                  child:Image(image: AssetImage("assets/nofood.jpg")
-               )
-              )
-            ) :
-            Center(
-              child: ListView.builder(
-              itemCount: foodList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return FoodListTile(food: foodList[index]);
-              }
-              )
-        );}
-      }),
+      body: [HomePageBody(), ProductPageBody()][currentIndex],
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-          _navigateAndDisplayAddPage(context);
+          _navigateAndDisplayAddPage(context, currentIndex);
           },
           child: const Icon(Icons.add),
         ),
-
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        bottomNavigationBar:NavigationBar(destinations: const <Widget>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.warehouse_outlined),
+            label: 'Products',
+          ),
+        ],
+        selectedIndex: currentIndex,
+        onDestinationSelected: (int index) {
+          setState(() {currentIndex = index;});
+        },),
     );
   }
 }
-class FoodListTile extends StatelessWidget {
-  const FoodListTile({super.key, required this.food});
 
-  final FoodEntry food;
-  @override
-  Widget build(BuildContext context) {
-    var database = context.watch<AppDatabase>();
-    var color = Colors.white;
-    var opened = false;
-    if (DateTime.now().isAfter(food.expiryDate)){
-      color = Colors.red;
-    }
-    else if (food.expiryDate.difference(DateTime.now()).inDays <= 7){
-      color = Colors.amber;
-    }
-    return Padding(
-          padding: const EdgeInsets.all(10),
-
-          child: Slidable(
-              endActionPane: ActionPane(
-                motion: DrawerMotion(),
-                children: [
-                  SlidableAction(
-                    onPressed: (context) {},
-                    backgroundColor: Color(0xFF0392CF),
-                    foregroundColor: Colors.white,
-                    icon: Icons.edit,
-                    label: 'Edit',
-                  ),
-                  SlidableAction(
-                    onPressed: (context) => showDialog<String>(
-                      context: context,
-                      builder: (BuildContext context) => AlertDialog(
-                        title: const Text('Are you sure?'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('No'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              database.deleteFoodRecord(food.id);
-                              Navigator.pop(context);},
-                            child: const Text('Yes'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    icon: Icons.delete_outline,
-                    label: 'Delete',
-                  ),
-                ],
-              ),
-            child: Card(
-              color: color,
-              child:ListTile(
-                title:Row(children: [Text(food.name.capitalize(),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22),),Expanded(
-                  child: Container(),
-                ),
-                  Text(DateFormat("E dd.MM.yyyy").format(food.expiryDate))]),
-                subtitle: Text("${food.desc!}\n${food.location!}"),
-                trailing: TextButton( onPressed: () {  },
-                child: Text("Open")
-                )
-              )
-            )
-          ),
-        );
-  }
-}
-Future<void> _navigateAndDisplayAddPage(BuildContext context) async {
-
+Future<void> _navigateAndDisplayAddPage(BuildContext context, int currentIndex) async {
+  final destAdd = [AddFoodPage(),AddProductPage()];
   final result = await Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => AddPage()),
+    MaterialPageRoute(builder: (context) => destAdd[currentIndex]),
   );
 
   if (!context.mounted) return;
