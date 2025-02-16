@@ -12,15 +12,18 @@ class Foods extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().references(Products, #name)();
   TextColumn get desc => text().nullable()();
-  TextColumn get location => text().nullable()();
   DateTimeColumn get expiryDate => dateTime()();
   DateTimeColumn get openingDate => dateTime().nullable()();
+  IntColumn get amount => integer().nullable()();
 }
 @DataClassName('Product')
 class Products extends Table {
   TextColumn get name => text()();
   IntColumn get openLife => integer()();
-  TextColumn get whereAfterOpening => text().nullable()();
+  TextColumn get storingLocation => text().nullable()();
+  TextColumn get openLocation => text().nullable()();
+  TextColumn get unit => text().nullable()();
+  IntColumn get basicAmount => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {name};
@@ -48,7 +51,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   Future<int> addFood(FoodsCompanion food) async {
     return await into(foods).insert(food);
@@ -81,14 +84,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Check if this product can be deleted
-  Future<bool> canDeleteProduct(String name) async {
+  Future<bool> isNotProductInDatabase(String name) async {
     var res = await (select(foods)..where((tbl) => tbl.name.equals(name))).get();
     return res.isEmpty;
   }
 
   // Delete a product by name
   Future<int> deleteProductRecord(String name) async {
-    assert (await canDeleteProduct(name));
+    assert (await isNotProductInDatabase(name));
     return await (delete(products)..where((tbl) => tbl.name.equals(name))).go();
   }
 

@@ -49,7 +49,7 @@ class FoodListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var database = context.watch<AppDatabase>();
     var color = Colors.white;
-    var opened = false;
+    var opened = food.openingDate == null ? false : true;
     if (DateTime.now().isAfter(food.expiryDate)){
       color = Colors.red;
     }
@@ -103,7 +103,7 @@ class FoodListTile extends StatelessWidget {
                     child: Container(),
                   ),
                     Text(DateFormat("E dd.MM.yyyy").format(food.expiryDate))]),
-                  subtitle: Text("${food.desc!}\n${food.location!}"),
+                  subtitle: Text("${food.desc!}\n"),
                   trailing: TextButton( onPressed: () {  },
                       child: Text("Open")
                   )

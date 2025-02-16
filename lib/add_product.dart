@@ -16,7 +16,8 @@ class _AddProductPageState extends State<AddProductPage> {
   final _formGlobalKey = GlobalKey<FormState>();
   String _name = '';
   int _openLife = 1;
-  String? _location;
+  String? _storingLocation;
+  String? _openLocation;
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +53,12 @@ class _AddProductPageState extends State<AddProductPage> {
                   return null;
                 }),
                 const SizedBox(height: 12),
+                buildTextFormField("Where before opening", (value) {
+                  _storingLocation = value!;
+                },(value) {return null;}),
+                const SizedBox(height: 12),
                 buildTextFormField("Where after opening", (value) {
-                  _location = value!;
+                  _openLocation = value!;
                 },(value) {return null;}),
                 const SizedBox(height: 20),
                 _buildSubmitButton(database),
@@ -75,7 +80,8 @@ class _AddProductPageState extends State<AddProductPage> {
             Product(
               name: _name,
               openLife: _openLife,
-              whereAfterOpening: _location,
+              openLocation: _openLocation,
+              storingLocation: _storingLocation,
             ),
           );
           Navigator.pop(context, _name);

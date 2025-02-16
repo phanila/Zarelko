@@ -19,7 +19,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
   final _formGlobalKey = GlobalKey<FormState>();
   String _name = '';
   String? _desc;
-  String? _location;
   DateTime _expiryDate = DateTime.now().add(Duration(days: 7));
   DateTime? _openingDate;
 
@@ -52,11 +51,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 buildTextFormField("Description", (value) {
                   _desc = value!;
                 },(value) {return null;}),
-                const SizedBox(height: 12),
-                buildTextFormField("Location", (value) {
-                  _location = value!;
-                },(value) {return null;}),
-                // Expiry date
                 const SizedBox(height: 12),
                 _buildDateField("Expiry Date", (value) {
                   _expiryDate = value!;
@@ -167,7 +161,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
               desc: Value(_desc),
               expiryDate: Value(_expiryDate),
               openingDate: Value(_openingDate),
-              location: Value(_location),
             ),
           );
           Navigator.pop(context, _name);

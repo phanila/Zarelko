@@ -93,7 +93,7 @@ class ProductListTile extends StatelessWidget {
               color: color,
               child:ListTile(
                   title:Text(product.name),
-                  subtitle: Text("${product.whereAfterOpening!}"),
+                  subtitle: Text("Where:${product.storingLocation!}, opened:${product.openLocation!}"),
                   trailing: Text("How many days can be opened: ${product.openLife}")
               )
           )
