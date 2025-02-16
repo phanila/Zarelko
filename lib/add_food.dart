@@ -44,7 +44,9 @@ class _AddFoodPageState extends State<AddFoodPage> {
             child: ListView(
               children: [
                 // name
-                _buildDropDownFormField("Name",database),
+                _buildAutocompleteFormField("Name",(value) {
+                  _name = value!;
+                },database),
                 const SizedBox(height: 12),
                 // desc
                 buildTextFormField("Description", (value) {
@@ -77,7 +79,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
   // Reusable method for creating text fields
 
 
-  Widget _buildDropDownFormField(
+  Widget _buildAutocompleteFormField(
       String label,
       Function(String?) onChanged,
       AppDatabase database,
@@ -91,49 +93,30 @@ class _AddFoodPageState extends State<AddFoodPage> {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {
-          return DropdownButtonFormField(
-            decoration: InputDecoration(
-              labelText: label,
-              border: OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: 16, horizontal: 12),
-            ),
-            items: snapshot.data!.map((p) {
-              return DropdownMenuItem(
-                value: p,
-                child: Text(p),);
-            }).toList()
-            ..add(DropdownMenuItem(
-              value: "3",
-              child: TextButton(
-                onPressed: () => showDialog<String>(
-                  context: context,
-                  builder: (BuildContext context) => AlertDialog(
-                    title: const Text('AlertDialog Title'),
-                    content: const Text('AlertDialog description'),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, 'Cancel'),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, 'OK'),
-                        child: const Text('Add'),
-                      ),
-                    ],
+          List<String> products = snapshot.data!;
+          return Autocomplete<String>(
+            fieldViewBuilder:
+            ((context, textEditingController, focusNode, onFieldSubmitted) =>
+                TextFormField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  onFieldSubmitted: (value) => onFieldSubmitted,
+                  decoration: InputDecoration(
+                    labelText: "Product name",
+                    border: OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                   ),
-                ),
-                child: Text("New product")
-              ),
-        ),  ),
-            onChanged: (value) {
-            _name = value!;
+                )),
+            initialValue: TextEditingValue(text: _name),
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text == '') {
+                return products;
+              }
+              return products.where((String option) {
+                return option.contains(textEditingValue.text.toLowerCase());
+              });
             },
-            validator: (value) {
-              if (await database.existsProduct(name))
-                return "No such product in database";
-              return null;
-            },
+            onSelected: onChanged,
           );
         }
       },
@@ -170,7 +153,11 @@ class _AddFoodPageState extends State<AddFoodPage> {
   // Submit button
   Widget _buildSubmitButton(AppDatabase database) {
     return FilledButton(
-      onPressed: () {
+      onPressed: () async {
+        bool isNotInDatabase = await database.isNotProductInDatabase(_name);
+        if (isNotInDatabase) {
+
+        }
         if (_formGlobalKey.currentState!.validate()) {
           _formGlobalKey.currentState!.save();
           database.addFood(
@@ -194,27 +181,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
         ),
       ),
       child: const Text("Add Food"),
-    );
-  }
-}
-class AutocompleteProducts extends StatelessWidget {
-  const AutocompleteProducts({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    var productOptions = database.ge
-    return Autocomplete<String>(
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text == '') {
-          return const Iterable<String>.empty();
-        }
-        return _kOptions.where((String option) {
-          return option.contains(textEditingValue.text.toLowerCase());
-        });
-      },
-      onSelected: (String selection) {
-        debugPrint('You just selected $selection');
-      },
     );
   }
 }
