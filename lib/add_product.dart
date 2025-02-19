@@ -1,7 +1,8 @@
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
+import 'database/powersync.dart';
 
 class AddProductPage extends StatefulWidget {
   const AddProductPage({super.key});
@@ -21,8 +22,6 @@ class _AddProductPageState extends State<AddProductPage> {
 
   @override
   Widget build(BuildContext context) {
-    var database = context.watch<AppDatabase>();
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -61,7 +60,7 @@ class _AddProductPageState extends State<AddProductPage> {
                   _openLocation = value!;
                 },(value) {return null;}),
                 const SizedBox(height: 20),
-                _buildSubmitButton(database),
+                _buildSubmitButton(),
               ],
             ),
           ),
@@ -71,17 +70,17 @@ class _AddProductPageState extends State<AddProductPage> {
   }
 
   // Submit button
-  Widget _buildSubmitButton(AppDatabase database) {
+  Widget _buildSubmitButton() {
     return FilledButton(
       onPressed: () {
         if (_formGlobalKey.currentState!.validate()) {
           _formGlobalKey.currentState!.save();
-          database.addProduct(
-            Product(
-              name: _name,
-              openLife: _openLife,
-              openLocation: _openLocation,
-              storingLocation: _storingLocation,
+          appDb.addProduct(
+            ProductsCompanion(
+              name: Value(_name),
+              openLife: Value(_openLife),
+              openLocation: Value(_openLocation),
+              storingLocation: Value(_storingLocation),
             ),
           );
           Navigator.pop(context, _name);

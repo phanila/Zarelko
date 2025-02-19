@@ -43,6 +43,11 @@ dependencies:
 
   # for slidable listView
   flutter_slidable: ^4.0.0
+#  libsql_dart: ^0.4.6
+  powersync: ^1.11.2
+  supabase_flutter: ^2.8.3
+  sqlite_async: ^0.11.4
+  drift_sqlite_async: ^0.2.1
 
 dev_dependencies:
   flutter_test:

@@ -1,10 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
-
+import 'database/powersync.dart';
 
 class AddFoodPage extends StatefulWidget {
   const AddFoodPage({super.key});
@@ -27,7 +26,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
 
   @override
   Widget build(BuildContext context) {
-    var database = context.watch<AppDatabase>();
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -45,7 +43,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 // name
                 _buildAutocompleteFormField("Name",(value) {
                   _name = value!;
-                },database),
+                },appDb),
                 const SizedBox(height: 12),
                 // desc
                 buildTextFormField("Description", (value) {
@@ -61,7 +59,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   _openingDate = value!;
                 },_controlOpeningDate),
                 const SizedBox(height: 20),
-                _buildSubmitButton(database),
+                _buildSubmitButton(),
               ],
             ),
           ),
@@ -145,16 +143,16 @@ class _AddFoodPageState extends State<AddFoodPage> {
   }
 
   // Submit button
-  Widget _buildSubmitButton(AppDatabase database) {
+  Widget _buildSubmitButton() {
     return FilledButton(
       onPressed: () async {
-        bool isNotInDatabase = await database.isNotProductInDatabase(_name);
+        bool isNotInDatabase = await appDb.isNotProductInDatabase(_name);
         if (isNotInDatabase) {
 
         }
         if (_formGlobalKey.currentState!.validate()) {
           _formGlobalKey.currentState!.save();
-          database.addFood(
+          appDb.addFood(
             FoodsCompanion(
               id: Value.absent(),
               name: Value(_name),

@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'dart:core';
 import 'package:intl/intl.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:zarelko/database/database.dart';
 import 'app_extensions.dart';
+import 'database/powersync.dart';
 
 class HomePageBody extends StatelessWidget {
   const HomePageBody({super.key});
   @override
   Widget build(BuildContext context) {
-    var database = context.watch<AppDatabase>();
-    return StreamBuilder(stream: database.getAllFood(), builder: (context,snapshot) {
+    return StreamBuilder(stream: appDb.getAllFood(), builder: (context,snapshot) {
       if (snapshot.hasError){
         return Text("Error from database: ${snapshot.error}");
       }
@@ -47,7 +46,6 @@ class FoodListTile extends StatelessWidget {
   final FoodEntry food;
   @override
   Widget build(BuildContext context) {
-    var database = context.watch<AppDatabase>();
     var color = Colors.white;
     var opened = food.openingDate == null ? false : true;
     if (DateTime.now().isAfter(food.expiryDate)){
@@ -82,7 +80,7 @@ class FoodListTile extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          database.deleteFoodRecord(food.id);
+                          appDb.deleteFoodRecord(food.id);
                           Navigator.pop(context);},
                         child: const Text('Yes'),
                       ),

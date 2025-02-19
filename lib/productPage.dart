@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'dart:core';
-import 'package:intl/intl.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:zarelko/database/database.dart';
-import 'app_extensions.dart';
+import 'database/powersync.dart';
 
 class ProductPageBody extends StatelessWidget {
   const ProductPageBody({super.key});
   @override
   Widget build(BuildContext context) {
-    var database = context.watch<AppDatabase>();
-    return StreamBuilder(stream: database.getAllProducts(), builder: (context,snapshot) {
+    return StreamBuilder(stream: appDb.getAllProducts(), builder: (context,snapshot) {
       if (snapshot.hasError){
         return Text("Error from database");
       }
@@ -47,7 +44,6 @@ class ProductListTile extends StatelessWidget {
   final Product product;
   @override
   Widget build(BuildContext context) {
-    var database = context.watch<AppDatabase>();
     var color = Colors.white;
     return Padding(
       padding: const EdgeInsets.all(10),
@@ -75,7 +71,7 @@ class ProductListTile extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          database.deleteProductRecord(product.name);
+                          appDb.deleteProductRecord(product.name);
                           Navigator.pop(context);},
                         child: const Text('Yes'),
                       ),

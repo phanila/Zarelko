@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'dart:core';
-import 'package:intl/intl.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:zarelko/add_food.dart';
 import 'package:zarelko/add_product.dart';
-import 'package:zarelko/database/database.dart';
-import 'app_extensions.dart';
+import 'package:zarelko/database/powersync.dart';
 import 'homePage.dart';
 import 'productPage.dart';
 
-void main() {
-  runApp(Provider<AppDatabase>(
-    create: (context) => AppDatabase(),
-    child: MyApp(),
-    dispose: (context, db) => db.close(),
-  ),);
+Future<void> main() async {
+  WidgetsFlutterBinding
+      .ensureInitialized(); //required to get sqlite filepath from path_provider before UI has initialized
+  await openDatabase();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -48,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
   //   var appState = context.watch<MyAppState>();
-     var database = context.watch<AppDatabase>();
+   //  var database = context.watch<AppDatabase>();
   //   Stream<List<FoodEntry>> foodList = await database.getAllFood();
     return Scaffold(
       appBar: AppBar(

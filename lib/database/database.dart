@@ -1,15 +1,16 @@
 import 'package:drift/drift.dart';
 import 'dart:io';
-
+import 'package:powersync/powersync.dart' show PowerSyncDatabase, uuid;
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-// import 'package:zarelko/database/DAO/food_response_dao.dart';
+
+import 'package:drift_sqlite_async/drift_sqlite_async.dart';
 part 'database.g.dart';
 
 @DataClassName('FoodEntry')
 class Foods extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  TextColumn get id => text().clientDefault(() => uuid.v4())();
   TextColumn get name => text().references(Products, #name)();
   TextColumn get desc => text().nullable()();
   DateTimeColumn get expiryDate => dateTime()();
@@ -18,7 +19,8 @@ class Foods extends Table {
 }
 @DataClassName('Product')
 class Products extends Table {
-  TextColumn get name => text()();
+  TextColumn get id => text().clientDefault(() => uuid.v4())();
+  TextColumn get name => text().unique()();
   IntColumn get openLife => integer()();
   TextColumn get storingLocation => text().nullable()();
   TextColumn get openLocation => text().nullable()();
@@ -26,10 +28,11 @@ class Products extends Table {
   IntColumn get basicAmount => integer().nullable()();
 
   @override
-  Set<Column<Object>> get primaryKey => {name};
+  Set<Column<Object>> get primaryKey => {id};
 }
 @DataClassName('ProductCategory')
 class ProductCategories extends Table {
+  TextColumn get id => text().clientDefault(() => uuid.v4())();
   TextColumn get product => text().references(Products, #name)();
   TextColumn get category => text()();
 
@@ -39,16 +42,9 @@ class ProductCategories extends Table {
   ];
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(path.join(dbFolder.path, "food_data.sqlite"));
-    return NativeDatabase(file);
-  });
-}
 @DriftDatabase(tables: [Foods, Products, ProductCategories])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase(PowerSyncDatabase db) : super(SqliteAsyncDriftConnection(db));
 
   @override
   int get schemaVersion => 3;
@@ -56,7 +52,7 @@ class AppDatabase extends _$AppDatabase {
   Future<int> addFood(FoodsCompanion food) async {
     return await into(foods).insert(food);
   }
-  Future<int> addProduct(Product product) async {
+  Future<int> addProduct(ProductsCompanion product) async {
     return await into(products).insert(product);
   }
 
@@ -79,7 +75,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Delete a food by id
-  Future<int> deleteFoodRecord(int id) async {
+  Future<int> deleteFoodRecord(String id) async {
     return await (delete(foods)..where((tbl) => tbl.id.equals(id))).go();
   }
 
