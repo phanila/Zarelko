@@ -14,11 +14,6 @@ class AddProductPage extends StatefulWidget {
 }
 
 class _AddProductPageState extends State<AddProductPage> {
-  final _formGlobalKey = GlobalKey<FormState>();
-  String _name = '';
-  int _openLife = 1;
-  String? _storingLocation;
-  String? _openLocation;
 
   @override
   Widget build(BuildContext context) {
@@ -29,42 +24,90 @@ class _AddProductPageState extends State<AddProductPage> {
             .of(context)
             .colorScheme
             .inversePrimary,
-        title: const Text("Add Product"),
+        title: const Text("Add or edit Product"),
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formGlobalKey,
-            child: ListView(
-              children: [
-                // name
-                buildTextFormField("Name", (value) {
-                  _name = value!;
-                },(value) {return null;}),
-                const SizedBox(height: 12),
-                // desc
-                buildTextFormField("How long can it be opened?", (value) {
-                  _openLife = int.parse(value!);
-                },(value) {
-                  var res = int.tryParse(value!);
-                  if (res == null) return "Not a number";
-                  return null;
-                }),
-                const SizedBox(height: 12),
-                buildTextFormField("Where before opening", (value) {
-                  _storingLocation = value!;
-                },(value) {return null;}),
-                const SizedBox(height: 12),
-                buildTextFormField("Where after opening", (value) {
-                  _openLocation = value!;
-                },(value) {return null;}),
-                const SizedBox(height: 20),
-                _buildSubmitButton(),
-              ],
-            ),
-          ),
+          child: ProductForm(initialName: 'test',),
         ),
+      ),
+    );
+  }
+
+}
+
+class ProductForm extends StatefulWidget {
+  final String? initialName;
+  final int? initialOpenLife;
+  final String? initialStoringLocation;
+  final String? initialOpenLocation;
+
+  const ProductForm({
+    super.key,
+    this.initialName,
+    this.initialOpenLife,
+    this.initialStoringLocation,
+    this.initialOpenLocation,
+  });
+
+  @override
+  State<ProductForm> createState() => _ProductFormState();
+}
+
+class _ProductFormState extends State<ProductForm> {
+  final _formGlobalKey = GlobalKey<FormState>();
+
+  late String _name;
+
+  late int _openLife;
+
+  String? _storingLocation;
+
+  String? _openLocation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialize the form fields with the passed initial values, if any
+    _name = widget.initialName ?? '';
+    _openLife = widget.initialOpenLife ?? 1;
+    _storingLocation = widget.initialStoringLocation;
+    _openLocation = widget.initialOpenLocation;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formGlobalKey,
+      child: ListView(
+        children: [
+          // name
+          buildTextFormField("Name", (value) {
+            _name = value!;
+          },(value) {return null;},
+            initialValue: _name,),
+          const SizedBox(height: 12),
+          // desc
+          buildTextFormField("How long can it be opened?", (value) {
+            _openLife = int.parse(value!);
+          },(value) {
+            var res = int.tryParse(value!);
+            if (res == null) return "Not a number";
+            return null;
+          },),
+          const SizedBox(height: 12),
+          buildTextFormField("Where before opening", (value) {
+            _storingLocation = value!;
+          },(value) {return null;}),
+          const SizedBox(height: 12),
+          buildTextFormField("Where after opening", (value) {
+            _openLocation = value!;
+          },(value) {return null;}),
+          const SizedBox(height: 20),
+          _buildSubmitButton(),
+        ],
       ),
     );
   }
@@ -75,7 +118,7 @@ class _AddProductPageState extends State<AddProductPage> {
       onPressed: () {
         if (_formGlobalKey.currentState!.validate()) {
           _formGlobalKey.currentState!.save();
-          appDb.addProduct(
+          appDb.addOrUpdateProduct(
             ProductsCompanion(
               name: Value(_name),
               openLife: Value(_openLife),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
+import 'package:zarelko/notifications_service.dart';
 import 'database/powersync.dart';
 
 class AddFoodPage extends StatefulWidget {
@@ -20,6 +21,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
   String? _desc;
   DateTime _expiryDate = DateTime.now().add(Duration(days: 7));
   DateTime? _openingDate;
+  int times = 1;
 
   final TextEditingController _controlExpireDate = TextEditingController();
   final TextEditingController _controlOpeningDate = TextEditingController();
@@ -161,6 +163,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
               openingDate: Value(_openingDate),
             ),
           );
+          NotificationsService.scheduleNotification(_name, "expires on $_expiryDate", _expiryDate.subtract(Duration(days: 7)));
+          NotificationsService.scheduleNotification(_name, "expires today", _expiryDate);
           Navigator.pop(context, _name);
         }
       },

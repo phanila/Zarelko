@@ -3,13 +3,17 @@ import 'dart:core';
 import 'package:zarelko/add_food.dart';
 import 'package:zarelko/add_product.dart';
 import 'package:zarelko/database/powersync.dart';
-import 'homePage.dart';
-import 'productPage.dart';
+import 'package:zarelko/notifications_service.dart';
+import 'home_page.dart';
+import 'product_page.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); //required to get sqlite filepath from path_provider before UI has initialized
   await openDatabase();
+  await NotificationsService.init();
+  tz.initializeTimeZones();
   runApp(MyApp());
 }
 
@@ -50,7 +54,9 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: [
-          ElevatedButton(onPressed: (){}, child: Icon(Icons.sync))
+          ElevatedButton(onPressed: (){
+            NotificationsService.showInstantNotification("Test", "notification service");
+          }, child: Icon(Icons.sync))
         ],
       ),
       body: [HomePageBody(), ProductPageBody()][currentIndex],

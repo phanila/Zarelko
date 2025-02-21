@@ -4,7 +4,7 @@ Widget buildTextFormField(
     String label,
     Function(String?) onSaved,
     Function(String?) validator,
-    ) {
+{String? initialValue}) {
   return TextFormField(
     maxLength: 20,
     decoration: InputDecoration(
@@ -16,5 +16,6 @@ Widget buildTextFormField(
     validator: (value) {
       return validator(value);
     },
+    initialValue: initialValue,
   );
 }

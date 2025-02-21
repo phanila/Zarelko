@@ -52,8 +52,12 @@ class AppDatabase extends _$AppDatabase {
   Future<int> addFood(FoodsCompanion food) async {
     return await into(foods).insert(food);
   }
-  Future<int> addProduct(ProductsCompanion product) async {
-    return await into(products).insert(product);
+  Future<int> addOrUpdateProduct(ProductsCompanion product) async {
+    if (await isNotProductInDatabase(product.name.value)) {
+      return await into(products).insert(product);
+    } else {
+      return await (update(products)..where((tbl) => tbl.name.equals(product.name.value))).write(product,);
+    }
   }
 
   // Stream<List<FoodEntry>> foodsInCategory(String? category) {
@@ -99,11 +103,11 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Update a Food
-  // Future<int> updateFoodRecord({required int id, FoodEntry food}) async {
-  //   final existingRecord = await (select(foods)..where((tbl) => tbl.id.equals(id))).getSingle();
-  //   final newFood = food ?? existingRecord.data;
-  //   return await (update(foods)..where((tbl) => tbl.id.equals(id))).write(
-  //     food,
-  //   );
-  // }
+  Future<int> updateFoodRecord({required String id, FoodEntry? food}) async {
+    // final existingRecord = await (select(foods)..where((tbl) => tbl.id.equals(id))).getSingle();
+    // final newFood = food ?? existingRecord.data;
+    return await (update(foods)..where((tbl) => tbl.id.equals(id))).write(
+      food!,
+    );
+  }
 }
