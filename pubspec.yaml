@@ -49,6 +49,7 @@ dependencies:
   sqlite_async: ^0.11.4
   drift_sqlite_async: ^0.2.1
   flutter_local_notifications: ^18.0.1
+  audioplayers: ^6.2.0
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +79,8 @@ flutter_icons:
 flutter:
   assets:
     - assets/nofood.jpg
+    - assets/Żarełko.mp3
+    - assets/EatingSound.mp3
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

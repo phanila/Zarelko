@@ -1,7 +1,9 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:intl/intl.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:zarelko/database/data_structures.dart';
 import 'package:zarelko/database/database.dart';
 import 'app_extensions.dart';
 import 'database/powersync.dart';
@@ -80,6 +82,8 @@ class FoodListTile extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
+                          var player = AudioPlayer();
+                          player.play(AssetSource("EatingSound.mp3"));
                           appDb.deleteFoodRecord(food.id);
                           Navigator.pop(context);},
                         child: const Text('Yes'),
@@ -102,7 +106,10 @@ class FoodListTile extends StatelessWidget {
                   ),
                     Text(DateFormat("E dd.MM.yyyy").format(food.expiryDate))]),
                   subtitle: Text("${food.desc!}\n"),
-                  trailing: TextButton( onPressed: () {  },
+                  trailing: TextButton( onPressed: () {
+                    //FoodWithProductInfo newFood = food;
+                    //newFood.openingDate = DateTime.now();
+                  },
                       child: Text("Open")
                   )
               )

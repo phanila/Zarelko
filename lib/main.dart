@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:zarelko/add_food.dart';
@@ -62,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: [HomePageBody(), ProductPageBody()][currentIndex],
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-          _navigateAndDisplayAddPage(context, currentIndex);
+          navigateAndDisplayAddPage(context, currentIndex, null);
           },
           child: const Icon(Icons.add),
         ),
@@ -86,8 +87,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-Future<void> _navigateAndDisplayAddPage(BuildContext context, int currentIndex) async {
-  final destAdd = [AddFoodPage(),AddProductPage()];
+Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, String? name) async {
+  final destAdd = [AddFoodPage(),AddProductPage(title:"Add product",initialName: name,)];
   final result = await Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => destAdd[currentIndex]),
@@ -97,9 +98,10 @@ Future<void> _navigateAndDisplayAddPage(BuildContext context, int currentIndex) 
 
   // After the Selection Screen returns a result, hide any previous snackbars
   // and show the new result.
-  if(result != null) {
+  if (result != null) {
+    var name = ["food","product"];
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('Added food: $result')));
+      ..showSnackBar(SnackBar(content: Text('Added ${name[currentIndex]}: $result')));
   }
 }
