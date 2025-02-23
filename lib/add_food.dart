@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
 import 'package:zarelko/notifications_service.dart';
 import 'database/powersync.dart';
+import 'main.dart';
 
 class AddFoodPage extends StatefulWidget {
   const AddFoodPage({super.key});
@@ -61,6 +63,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   _openingDate = value!;
                 },_controlOpeningDate),
                 const SizedBox(height: 20),
+                CounterField(onSaved: (value) {times = int.parse(value!);}),
+                const SizedBox(height: 20),
                 _buildSubmitButton(),
               ],
             ),
@@ -79,6 +83,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
       AppDatabase database,
       ) {
     var productList = database.getAllProductNames();
+    TextEditingController textEditingController = TextEditingController();
     return FutureBuilder<List<String>>(
       future: productList,
       builder: (context, snapshot) {
@@ -100,15 +105,40 @@ class _AddFoodPageState extends State<AddFoodPage> {
                     border: OutlineInputBorder(),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                   ),
+                  onSaved: onChanged,
                 )),
             initialValue: TextEditingValue(text: _name),
             optionsBuilder: (TextEditingValue textEditingValue) {
               if (textEditingValue.text == '') {
                 return products;
               }
-              return products.where((String option) {
-                return option.contains(textEditingValue.text.toLowerCase());
-              });
+              // Allowing both options from the list and free text input
+              var filteredProducts = products
+                  .where((String option) =>
+                  option.toLowerCase().contains(textEditingValue.text.toLowerCase()))
+                  .toList();
+
+              // Adding the typed value (in case the product is not in the list)
+              if (!filteredProducts.contains(textEditingValue.text)) {
+                if (filteredProducts.isEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    textEditingController.text = textEditingValue.text;
+                    onChanged(textEditingValue.text);
+                  });
+                }
+                else {
+                  filteredProducts.add(textEditingValue.text);
+                }
+              }
+              // If there is only one match, automatically select it
+              if (filteredProducts.length == 1) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  textEditingController.text = filteredProducts[0];
+                  onChanged(filteredProducts[0]);
+                });
+              }
+
+              return filteredProducts;
             },
             onSelected: onChanged,
           );
@@ -150,22 +180,46 @@ class _AddFoodPageState extends State<AddFoodPage> {
       onPressed: () async {
         bool isNotInDatabase = await appDb.isNotProductInDatabase(_name);
         if (isNotInDatabase) {
-
-        }
-        if (_formGlobalKey.currentState!.validate()) {
-          _formGlobalKey.currentState!.save();
-          appDb.addFood(
-            FoodsCompanion(
-              id: Value.absent(),
-              name: Value(_name),
-              desc: Value(_desc),
-              expiryDate: Value(_expiryDate),
-              openingDate: Value(_openingDate),
+          showDialog<String>(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+              title: Text("$_name not in database"),
+              content: Text("Do you want it to add it?"),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    },
+                  child: const Text('No'),
+                ),
+                TextButton(
+                  onPressed: () async  {
+                    await navigateAndDisplayAddPage(context, 1, _name);
+                    Navigator.pop(context);
+                    },
+                  child: const Text('Yes'),
+                ),
+              ],
             ),
           );
-          NotificationsService.scheduleNotification(_name, "expires on $_expiryDate", _expiryDate.subtract(Duration(days: 7)));
-          NotificationsService.scheduleNotification(_name, "expires today", _expiryDate);
-          Navigator.pop(context, _name);
+        }
+        else if (_formGlobalKey.currentState!.validate()) {
+          _formGlobalKey.currentState!.save();
+          for (int i = 0; i < times; i++) {
+            await appDb.addFood(
+              FoodsCompanion(
+                id: Value.absent(),
+                name: Value(_name),
+                desc: Value(_desc),
+                expiryDate: Value(_expiryDate),
+                openingDate: Value(_openingDate),
+              ),
+            );
+
+            NotificationsService.scheduleNotification(_name, "expires on $_expiryDate", _expiryDate.subtract(Duration(days: 7)));
+            NotificationsService.scheduleNotification(_name, "expires today", _expiryDate);
+          }
+          Navigator.pop(context, "$_name x$times");
         }
       },
       style: FilledButton.styleFrom(
@@ -176,6 +230,64 @@ class _AddFoodPageState extends State<AddFoodPage> {
         ),
       ),
       child: const Text("Add Food"),
+    );
+  }
+}
+class CounterField extends StatefulWidget {
+  const CounterField({super.key, required this.onSaved});
+  final Function(String?) onSaved;
+  @override
+  State<CounterField> createState() => _CounterFieldState();
+}
+
+class _CounterFieldState extends State<CounterField> {
+  int count = 1;
+  final myController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the
+    // widget tree.
+    myController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    myController.text = "1";
+    return Row(
+      children: [
+        IconButton(
+            onPressed: () {
+              count--;
+              myController.text = count.toString();
+            },
+            icon: Icon(Icons.remove)),
+        Expanded(child: TextFormField(
+          maxLength: 20,
+          decoration: InputDecoration(
+            labelText: "How many",
+            border: OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+          ),
+          controller: myController,
+          keyboardType: TextInputType.number,
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.digitsOnly
+          ],
+          onChanged: (value) {
+            count = int.parse(value);
+          },
+          onSaved: widget.onSaved,
+        )
+        ),
+        IconButton(
+            onPressed: () {
+              count++;
+              myController.text = count.toString();
+            },
+            icon: Icon(Icons.add)),
+      ],
     );
   }
 }

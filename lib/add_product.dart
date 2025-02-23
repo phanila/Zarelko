@@ -5,7 +5,20 @@ import 'package:zarelko/form_widget/text_field_form.dart';
 import 'database/powersync.dart';
 
 class AddProductPage extends StatefulWidget {
-  const AddProductPage({super.key});
+  const AddProductPage({
+    super.key,
+    this.initialName,
+    this.initialOpenLife,
+    this.initialStoringLocation,
+    this.initialOpenLocation,
+    required this.title,
+  });
+
+  final String? initialName;
+  final int? initialOpenLife;
+  final String? initialStoringLocation;
+  final String? initialOpenLocation;
+  final String title;
 
   @override
   State<StatefulWidget> createState() {
@@ -24,12 +37,15 @@ class _AddProductPageState extends State<AddProductPage> {
             .of(context)
             .colorScheme
             .inversePrimary,
-        title: const Text("Add or edit Product"),
+        title: Text(widget.title),
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ProductForm(initialName: 'test',),
+          child: ProductForm(initialName: widget.initialName,
+            initialOpenLife: widget.initialOpenLife,
+            initialStoringLocation: widget.initialStoringLocation,
+            initialOpenLocation: widget.initialOpenLocation,),
         ),
       ),
     );
@@ -38,11 +54,6 @@ class _AddProductPageState extends State<AddProductPage> {
 }
 
 class ProductForm extends StatefulWidget {
-  final String? initialName;
-  final int? initialOpenLife;
-  final String? initialStoringLocation;
-  final String? initialOpenLocation;
-
   const ProductForm({
     super.key,
     this.initialName,
@@ -50,6 +61,11 @@ class ProductForm extends StatefulWidget {
     this.initialStoringLocation,
     this.initialOpenLocation,
   });
+
+  final String? initialName;
+  final int? initialOpenLife;
+  final String? initialStoringLocation;
+  final String? initialOpenLocation;
 
   @override
   State<ProductForm> createState() => _ProductFormState();
@@ -115,10 +131,10 @@ class _ProductFormState extends State<ProductForm> {
   // Submit button
   Widget _buildSubmitButton() {
     return FilledButton(
-      onPressed: () {
+      onPressed: () async {
         if (_formGlobalKey.currentState!.validate()) {
           _formGlobalKey.currentState!.save();
-          appDb.addOrUpdateProduct(
+          await appDb.addOrUpdateProduct(
             ProductsCompanion(
               name: Value(_name),
               openLife: Value(_openLife),
