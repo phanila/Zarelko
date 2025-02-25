@@ -164,8 +164,8 @@ Future<void> openDatabase() async {
 
   await loadSupabase();
   await Supabase.instance.client.auth.signInWithPassword(
-    email: 'example@email.com',
-    password: 'example-password',
+    email: AppConfig.supabaseLogin,
+    password: AppConfig.supabasePassword,
   );
 
 

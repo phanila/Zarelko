@@ -79,7 +79,7 @@ flutter_icons:
 flutter:
   assets:
     - assets/nofood.jpg
-    - assets/Żarełko.mp3
+    - assets/Zarelko.mp3
     - assets/EatingSound.mp3
 
   # The following line ensures that the Material Icons font is
