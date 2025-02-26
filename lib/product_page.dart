@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:zarelko/database/database.dart';
+import 'package:zarelko/main.dart';
 import 'database/powersync.dart';
 
 class ProductPageBody extends StatelessWidget {
@@ -53,7 +54,9 @@ class ProductListTile extends StatelessWidget {
             motion: DrawerMotion(),
             children: [
               SlidableAction(
-                onPressed: (context) {},
+                onPressed: (context) {
+                  navigateAndDisplayAddPage(context, 1, product,true);
+                },
                 backgroundColor: Color(0xFF0392CF),
                 foregroundColor: Colors.white,
                 icon: Icons.edit,

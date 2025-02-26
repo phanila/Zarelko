@@ -7,17 +7,11 @@ import 'database/powersync.dart';
 class AddProductPage extends StatefulWidget {
   const AddProductPage({
     super.key,
-    this.initialName,
-    this.initialOpenLife,
-    this.initialStoringLocation,
-    this.initialOpenLocation,
+    this.initialProduct,
     required this.title,
   });
 
-  final String? initialName;
-  final int? initialOpenLife;
-  final String? initialStoringLocation;
-  final String? initialOpenLocation;
+  final Product? initialProduct;
   final String title;
 
   @override
@@ -42,10 +36,11 @@ class _AddProductPageState extends State<AddProductPage> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ProductForm(initialName: widget.initialName,
-            initialOpenLife: widget.initialOpenLife,
-            initialStoringLocation: widget.initialStoringLocation,
-            initialOpenLocation: widget.initialOpenLocation,),
+          child: ProductForm(initialName: widget.initialProduct?.name,
+            initialOpenLife: widget.initialProduct?.openLife,
+            initialStoringLocation: widget.initialProduct?.storingLocation,
+            initialOpenLocation: widget.initialProduct?.openLocation,
+          title: widget.title,),
         ),
       ),
     );
@@ -60,12 +55,15 @@ class ProductForm extends StatefulWidget {
     this.initialOpenLife,
     this.initialStoringLocation,
     this.initialOpenLocation,
+    required this.title,
   });
 
   final String? initialName;
   final int? initialOpenLife;
   final String? initialStoringLocation;
   final String? initialOpenLocation;
+
+  final String title;
 
   @override
   State<ProductForm> createState() => _ProductFormState();
@@ -112,15 +110,17 @@ class _ProductFormState extends State<ProductForm> {
             var res = int.tryParse(value!);
             if (res == null) return "Not a number";
             return null;
-          },),
+          },
+            initialValue: _openLife.toString(),),
           const SizedBox(height: 12),
           buildTextFormField("Where before opening", (value) {
             _storingLocation = value!;
-          },(value) {return null;}),
+          },(value) {return null;},initialValue: _storingLocation,),
           const SizedBox(height: 12),
           buildTextFormField("Where after opening", (value) {
             _openLocation = value!;
-          },(value) {return null;}),
+          },(value) {return null;},
+            initialValue: _openLocation,),
           const SizedBox(height: 20),
           _buildSubmitButton(),
         ],
@@ -152,7 +152,7 @@ class _ProductFormState extends State<ProductForm> {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-      child: const Text("Add Product"),
+      child: Text(widget.title),
     );
   }
 }
