@@ -194,7 +194,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 ),
                 TextButton(
                   onPressed: () async  {
-                    await navigateAndDisplayAddPage(context, 1, _name);
+                    await navigateAndDisplayAddPage(context, 1, Product(id: "", name: _name, openLife: 7),false);
                     Navigator.pop(context);
                     },
                   child: const Text('Yes'),

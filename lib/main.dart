@@ -5,6 +5,7 @@ import 'package:zarelko/add_food.dart';
 import 'package:zarelko/add_product.dart';
 import 'package:zarelko/database/powersync.dart';
 import 'package:zarelko/notifications_service.dart';
+import 'database/database.dart';
 import 'home_page.dart';
 import 'product_page.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -43,8 +44,37 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   var currentIndex = 0;
+
+
+  var player = AudioPlayer();
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print("app in resumed");
+        player.play(AssetSource("EatingSound.mp3"));
+        break;
+      case AppLifecycleState.inactive:
+        print("app in inactive");
+
+        player.stop();
+        //Stop the music
+        break;
+      case AppLifecycleState.paused:
+        print("app in paused");
+        break;
+      case AppLifecycleState.detached:
+        print("app in detached");
+        player.stop();
+        //Stop the music
+        break;
+      case AppLifecycleState.hidden:
+        print("app in hidden");
+    }
+  }
   @override
   Widget build(BuildContext context) {
   //   var appState = context.watch<MyAppState>();
@@ -63,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: [HomePageBody(), ProductPageBody()][currentIndex],
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-          navigateAndDisplayAddPage(context, currentIndex, null);
+          navigateAndDisplayAddPage(context, currentIndex, null,false);
           },
           child: const Icon(Icons.add),
         ),
@@ -87,8 +117,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, String? name) async {
-  final destAdd = [AddFoodPage(),AddProductPage(title:"Add product",initialName: name,)];
+Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, Product? product, bool toEdit) async {
+  final destAdd = [AddFoodPage(),AddProductPage(title:toEdit?"Edit product":"Add product",initialProduct: product,)];
   final result = await Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => destAdd[currentIndex]),
