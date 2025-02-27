@@ -74,8 +74,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
     );
   }
 
-  // Reusable method for creating text fields
-
 
   Widget _buildAutocompleteFormField(
       String label,

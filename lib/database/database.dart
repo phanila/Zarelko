@@ -97,6 +97,13 @@ class AppDatabase extends _$AppDatabase {
       ..where((tbl) => tbl.name.equals(name))).get();
     return res.isEmpty;
   }
+  Future<List<String>> allFoodOfThisProduct(String name) async {
+    final name = foods.name;
+    final desc = foods.desc;
+    final query = (selectOnly(foods))
+      ..addColumns([name])..addColumns([desc]);
+    return query.map((row) => row.read(name)!+row.read(desc)!).get();
+  }
 
   // Delete a product by name
   Future<int> deleteProductRecord(String name) async {
@@ -111,6 +118,18 @@ class AppDatabase extends _$AppDatabase {
     final query = (selectOnly(products))
       ..addColumns([name]);
     return query.map((row) => row.read(name)!).get();
+  }
+
+  // Get all places
+  Future<List<String>> getAllPlaces() {
+    final openLocation = products.openLocation;
+    final storingLocation = products.storingLocation;
+    final queryOpen = (selectOnly(products))
+      ..addColumns([openLocation]);
+    final queryStore = (selectOnly(products))
+      ..addColumns([storingLocation]);
+    queryOpen.union(queryStore);
+    return queryOpen.map((row) => row.read(openLocation)!).get();
   }
 
   // Update a Food

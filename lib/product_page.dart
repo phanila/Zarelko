@@ -67,6 +67,7 @@ class ProductListTile extends StatelessWidget {
                   context: context,
                   builder: (BuildContext context) => AlertDialog(
                     title: const Text('Are you sure?'),
+                    content: Text(appDb.allFoodOfThisProduct(product.name).toString()),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () => Navigator.pop(context),

@@ -113,18 +113,87 @@ class _ProductFormState extends State<ProductForm> {
           },
             initialValue: _openLife.toString(),),
           const SizedBox(height: 12),
-          buildTextFormField("Where before opening", (value) {
+          _buildAutocompleteFormField("Where before opening",  _storingLocation,(value) {
             _storingLocation = value!;
-          },(value) {return null;},initialValue: _storingLocation,),
+          }),
           const SizedBox(height: 12),
-          buildTextFormField("Where after opening", (value) {
+          _buildAutocompleteFormField("Where after opening", _openLocation, (value) {
             _openLocation = value!;
-          },(value) {return null;},
-            initialValue: _openLocation,),
+          }),
           const SizedBox(height: 20),
           _buildSubmitButton(),
         ],
       ),
+    );
+  }
+
+  Widget _buildAutocompleteFormField(
+      String label,
+      String? initialValue,
+      Function(String?) onChanged,
+      ) {
+    var placesList = appDb.getAllPlaces();
+    TextEditingController textEditingController = TextEditingController();
+    return FutureBuilder<List<String>>(
+      future: placesList,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          List<String> places = snapshot.data!;
+          return Autocomplete<String>(
+            fieldViewBuilder:
+            ((context, textEditingController, focusNode, onFieldSubmitted) =>
+                TextFormField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  onFieldSubmitted: (value) => onFieldSubmitted,
+                  decoration: InputDecoration(
+                    labelText: label,
+                    border: OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  ),
+                  onSaved: onChanged,
+                )),
+            initialValue: TextEditingValue(text: initialValue ?? ""),
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text == '') {
+                return places;
+              }
+              // Allowing both options from the list and free text input
+              var filteredPlaces = places
+                  .where((String option) =>
+                  option.toLowerCase().contains(textEditingValue.text.toLowerCase()))
+                  .toList();
+
+              // Adding the typed value (in case the product is not in the list)
+              if (!filteredPlaces.contains(textEditingValue.text)) {
+                if (filteredPlaces.isEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    textEditingController.text = textEditingValue.text;
+                    onChanged(textEditingValue.text);
+                  });
+                }
+                else {
+                  filteredPlaces.add(textEditingValue.text);
+                }
+              }
+              // If there is only one match, automatically select it
+              if (filteredPlaces.length == 1) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  textEditingController.text = filteredPlaces[0];
+                  onChanged(filteredPlaces[0]);
+                });
+              }
+
+              return filteredPlaces;
+            },
+            onSelected: onChanged,
+          );
+        }
+      },
     );
   }
 
