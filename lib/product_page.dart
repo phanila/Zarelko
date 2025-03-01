@@ -67,7 +67,25 @@ class ProductListTile extends StatelessWidget {
                   context: context,
                   builder: (BuildContext context) => AlertDialog(
                     title: const Text('Are you sure?'),
-                    content: Text(appDb.allFoodOfThisProduct(product.name).toString()),
+                    content: FutureBuilder(
+                      future: appDb.allFoodOfThisProduct(product.name),
+                      builder: (context,snapshot) {
+                        if (snapshot.hasError) {
+                          return Text("Error from database");
+                        }
+                        List<String>? foodsOfProduct = snapshot.data;
+                        switch (snapshot.connectionState) {
+                          case ConnectionState.waiting:
+                          case ConnectionState.none:
+                            return LinearProgressIndicator();
+                          case ConnectionState.active:
+                          case ConnectionState.done:
+                            if (foodsOfProduct == null || foodsOfProduct.length == 0) {
+                              return Text("No food affected");
+                            }
+                            return Text("${foodsOfProduct.length} food affected\n - ${foodsOfProduct.join("\n - ")}\n You will delete all of them");
+                        }
+                      }),
                     actions: <Widget>[
                       TextButton(
                         onPressed: () => Navigator.pop(context),

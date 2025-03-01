@@ -97,17 +97,18 @@ class AppDatabase extends _$AppDatabase {
       ..where((tbl) => tbl.name.equals(name))).get();
     return res.isEmpty;
   }
-  Future<List<String>> allFoodOfThisProduct(String name) async {
+  Future<List<String>> allFoodOfThisProduct(String product) async {
     final name = foods.name;
     final desc = foods.desc;
     final query = (selectOnly(foods))
-      ..addColumns([name])..addColumns([desc]);
-    return query.map((row) => row.read(name)!+row.read(desc)!).get();
+      ..addColumns([name])..addColumns([desc])..where(foods.name.equals(product));
+    return query.map((row) => "${row.read(name)!} ${row.read(desc)!}").get();
   }
 
   // Delete a product by name
   Future<int> deleteProductRecord(String name) async {
-    assert (await isNotProductInDatabase(name));
+    // assert (await isNotProductInDatabase(name));
+   await (delete(foods)..where((tbl) => tbl.name.equals(name))).go();
     return await (delete(products)
       ..where((tbl) => tbl.name.equals(name))).go();
   }
