@@ -54,6 +54,7 @@ class ProductListTile extends StatelessWidget {
             motion: DrawerMotion(),
             children: [
               SlidableAction(
+                borderRadius: BorderRadius.horizontal(left:Radius.circular(15)),
                 onPressed: (context) {
                   navigateAndDisplayAddPage(context, 1, product,true);
                 },
@@ -63,6 +64,7 @@ class ProductListTile extends StatelessWidget {
                 label: 'Edit',
               ),
               SlidableAction(
+                borderRadius: BorderRadius.horizontal(right:Radius.circular(15)),
                 onPressed: (context) => showDialog<String>(
                   context: context,
                   builder: (BuildContext context) => AlertDialog(

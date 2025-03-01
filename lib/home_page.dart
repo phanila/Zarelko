@@ -64,6 +64,7 @@ class FoodListTile extends StatelessWidget {
             motion: DrawerMotion(),
             children: [
               SlidableAction(
+                borderRadius: BorderRadius.horizontal(left:Radius.circular(15)),
                 onPressed: (context) {},
                 backgroundColor: Color(0xFF0392CF),
                 foregroundColor: Colors.white,
@@ -71,6 +72,7 @@ class FoodListTile extends StatelessWidget {
                 label: 'Edit',
               ),
               SlidableAction(
+                borderRadius: BorderRadius.horizontal(right:Radius.circular(15)),
                 onPressed: (context) => showDialog<String>(
                   context: context,
                   builder: (BuildContext context) => AlertDialog(
