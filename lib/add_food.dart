@@ -64,7 +64,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   _openingDate = value!;
                 },_controlOpeningDate),
                 const SizedBox(height: 20),
-                CounterField(label:"How many",onSaved: (value) {times = int.parse(value!);}),
+                CounterField(label:"How many",onSaved: (value) {times = int.parse(value!);},initialValue: times,),
                 const SizedBox(height: 20),
                 _buildSubmitButton(),
               ],

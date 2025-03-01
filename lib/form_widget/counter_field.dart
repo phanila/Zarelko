@@ -32,6 +32,7 @@ class _CounterFieldState extends State<CounterField> {
             onPressed: () {
               count--;
               myController.text = count.toString();
+              widget.onSaved(count.toString());
             },
             icon: Icon(Icons.remove)),
         Expanded(child: TextFormField(
@@ -48,6 +49,7 @@ class _CounterFieldState extends State<CounterField> {
           ],
           onChanged: (value) {
             count = int.parse(value);
+            widget.onSaved(value);
           },
           onSaved: widget.onSaved,
         )
@@ -56,6 +58,7 @@ class _CounterFieldState extends State<CounterField> {
             onPressed: () {
               count++;
               myController.text = count.toString();
+              widget.onSaved(count.toString());
             },
             icon: Icon(Icons.add)),
       ],
