@@ -6,6 +6,7 @@ import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
 import 'package:zarelko/notifications_service.dart';
 import 'database/powersync.dart';
+import 'form_widget/counter_field.dart';
 import 'main.dart';
 
 class AddFoodPage extends StatefulWidget {
@@ -63,7 +64,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   _openingDate = value!;
                 },_controlOpeningDate),
                 const SizedBox(height: 20),
-                CounterField(onSaved: (value) {times = int.parse(value!);}),
+                CounterField(label:"How many",onSaved: (value) {times = int.parse(value!);}),
                 const SizedBox(height: 20),
                 _buildSubmitButton(),
               ],
@@ -228,64 +229,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
         ),
       ),
       child: const Text("Add Food"),
-    );
-  }
-}
-class CounterField extends StatefulWidget {
-  const CounterField({super.key, required this.onSaved});
-  final Function(String?) onSaved;
-  @override
-  State<CounterField> createState() => _CounterFieldState();
-}
-
-class _CounterFieldState extends State<CounterField> {
-  int count = 1;
-  final myController = TextEditingController();
-
-  @override
-  void dispose() {
-    // Clean up the controller when the widget is removed from the
-    // widget tree.
-    myController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    myController.text = "1";
-    return Row(
-      children: [
-        IconButton(
-            onPressed: () {
-              count--;
-              myController.text = count.toString();
-            },
-            icon: Icon(Icons.remove)),
-        Expanded(child: TextFormField(
-          maxLength: 20,
-          decoration: InputDecoration(
-            labelText: "How many",
-            border: OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          ),
-          controller: myController,
-          keyboardType: TextInputType.number,
-          inputFormatters: <TextInputFormatter>[
-            FilteringTextInputFormatter.digitsOnly
-          ],
-          onChanged: (value) {
-            count = int.parse(value);
-          },
-          onSaved: widget.onSaved,
-        )
-        ),
-        IconButton(
-            onPressed: () {
-              count++;
-              myController.text = count.toString();
-            },
-            icon: Icon(Icons.add)),
-      ],
     );
   }
 }

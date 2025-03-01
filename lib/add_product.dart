@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:zarelko/add_food.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
 import 'database/powersync.dart';
+import 'form_widget/counter_field.dart';
 
 class AddProductPage extends StatefulWidget {
   const AddProductPage({
@@ -104,14 +106,10 @@ class _ProductFormState extends State<ProductForm> {
             initialValue: _name,),
           const SizedBox(height: 12),
           // desc
-          buildTextFormField("How long can it be opened?", (value) {
+          CounterField(label:"How long can it be opened?", onSaved: (value) {
             _openLife = int.parse(value!);
-          },(value) {
-            var res = int.tryParse(value!);
-            if (res == null) return "Not a number";
-            return null;
           },
-            initialValue: _openLife.toString(),),
+            initialValue: _openLife,),
           const SizedBox(height: 12),
           _buildAutocompleteFormField("Where before opening",  _storingLocation,(value) {
             _storingLocation = value!;

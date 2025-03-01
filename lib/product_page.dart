@@ -82,7 +82,7 @@ class ProductListTile extends StatelessWidget {
                             return LinearProgressIndicator();
                           case ConnectionState.active:
                           case ConnectionState.done:
-                            if (foodsOfProduct == null || foodsOfProduct.length == 0) {
+                            if (foodsOfProduct == null || foodsOfProduct.isEmpty) {
                               return Text("No food affected");
                             }
                             return Text("${foodsOfProduct.length} food affected\n - ${foodsOfProduct.join("\n - ")}\n You will delete all of them");
