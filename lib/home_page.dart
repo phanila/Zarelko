@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:intl/intl.dart';
@@ -12,18 +13,21 @@ class HomePageBody extends StatelessWidget {
   const HomePageBody({super.key});
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(stream: appDb.getAllFood(), builder: (context,snapshot) {
+    return StreamBuilder(stream: appDb.getAllFoodWithProductInfo(), builder: (context,snapshot) {
       if (snapshot.hasError){
         return Text("Error from database: ${snapshot.error}");
       }
-      List<FoodEntry>? foodList = snapshot.data;
+      List<FoodWithProductInfo>? foodList = snapshot.data;
       switch(snapshot.connectionState){
         case ConnectionState.waiting:
         case ConnectionState.none:
           return LinearProgressIndicator();
         case ConnectionState.active:
         case ConnectionState.done:
-          return foodList!.isEmpty ? Center(
+          if (foodList!.isNotEmpty) {
+            foodList.sort((a, b) => a.finalDate.compareTo(b.finalDate));
+          }
+          return foodList.isEmpty ? Center(
               child: Padding(
                   padding: const EdgeInsets.all(20),
                   child:Image(image: AssetImage("assets/nofood.jpg")
@@ -34,7 +38,7 @@ class HomePageBody extends StatelessWidget {
               child: ListView.builder(
                   itemCount: foodList.length,
                   itemBuilder: (BuildContext context, int index) {
-                    return FoodListTile(food: foodList[index]);
+                    return FoodListTile(element: foodList[index]);
                   }
               )
           );}
@@ -43,17 +47,17 @@ class HomePageBody extends StatelessWidget {
 
 }
 class FoodListTile extends StatelessWidget {
-  const FoodListTile({super.key, required this.food});
+  const FoodListTile({super.key, required this.element});
 
-  final FoodEntry food;
+  final FoodWithProductInfo element;
   @override
   Widget build(BuildContext context) {
     var color = Colors.white;
-    var opened = food.openingDate == null ? false : true;
-    if (DateTime.now().isAfter(food.expiryDate)){
+    var isOpened = element.food.openingDate == null;
+    if (DateTime.now().isAfter(element.finalDate)){
       color = Colors.red;
     }
-    else if (food.expiryDate.difference(DateTime.now()).inDays <= 7){
+    else if (element.finalDate.difference(DateTime.now()).inDays <= 7){
       color = Colors.amber;
     }
     return Padding(
@@ -86,7 +90,7 @@ class FoodListTile extends StatelessWidget {
                         onPressed: () {
                           var player = AudioPlayer();
                           player.play(AssetSource("EatingSound.mp3"));
-                          appDb.deleteFoodRecord(food.id);
+                          appDb.deleteFoodRecord(element.food.id);
                           Navigator.pop(context);},
                         child: const Text('Yes'),
                       ),
@@ -103,17 +107,18 @@ class FoodListTile extends StatelessWidget {
           child: Card(
               color: color,
               child:ListTile(
-                  title:Row(children: [Text(food.name.capitalize(),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22),),Expanded(
+                  title:Row(children: [Text(element.food.name.capitalize(),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22),),Expanded(
                     child: Container(),
                   ),
-                    Text(DateFormat("E dd.MM.yyyy").format(food.expiryDate))]),
-                  subtitle: Text("${food.desc!}\n"),
-                  trailing: TextButton( onPressed: () {
-                    //FoodWithProductInfo newFood = food;
-                    //newFood.openingDate = DateTime.now();
+                    Text(DateFormat("E dd.MM.yyyy").format(element.finalDate))]),
+                  subtitle: Text("${element.food.desc!}\n${element.finalPlace}"),
+                  trailing: isOpened ?  TextButton(
+                      onPressed: () {
+                    FoodEntry newFood = element.food.copyWith(openingDate: Value(DateTime.now()));
+                    appDb.updateFoodRecord(id: element.food.id,food: newFood);
                   },
                       child: Text("Open")
-                  )
+                  ): null,
               )
           )
       ),

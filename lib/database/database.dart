@@ -1,9 +1,5 @@
 import 'package:drift/drift.dart';
-import 'dart:io';
 import 'package:powersync/powersync.dart' show PowerSyncDatabase, uuid;
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 import 'package:drift_sqlite_async/drift_sqlite_async.dart';
 
@@ -64,6 +60,21 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
+  // Get all food with information from product
+  Stream<List<FoodWithProductInfo>> getAllFoodWithProductInfo() {
+    final query = select(foods).join([
+      leftOuterJoin(products, products.name.equalsExp(foods.name)),
+    ]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return FoodWithProductInfo(
+          food: row.readTable(foods),
+          product: row.readTable(products),
+        );
+      }).toList();
+    });
+  }
   // Stream<List<FoodEntry>> foodsInCategory(String? category) {
   //   if (category == null) {
   //     return (select(foods)..where((f) => f.category.isNull())).watch();
@@ -141,65 +152,5 @@ class AppDatabase extends _$AppDatabase {
       ..where((tbl) => tbl.id.equals(id))).write(
       food!,
     );
-  }
-
-  // Function to get FoodWithProductInfo ordered by dynamicExpiryDate
-  Stream<List<
-      FoodWithProductInfo>>? getFoodsWithProductInfoOrderedByExpiry() {
-    return null;
-    // final query = select(foods)
-    // // Join the products table with the foods table on name
-    //   .join([leftOuterJoin(
-    // foods, products.name.equalsExp(foods.name))])
-    //
-    // // Calculate dynamicExpiryDate
-    //   ..addColumns([
-    //     // Select columns from the foods table
-    //     foods.id,
-    //     foods.name,
-    //     foods.desc,
-    //     foods.expiryDate,
-    //     foods.openingDate,
-    //     foods.amount,
-    //
-    //     // Select columns from the products table
-    //     products.storingLocation,
-    //     products.openLife,
-    //     products.openLocation,
-    //     products.unit,
-    //     products.basicAmount,
-    //
-    //     // Calculate dynamicExpiryDate using case and coalesce
-    //     // GREATEST(COALESCE(foods.expiryDate, '1970-01-01'), CASE WHEN foods.openingDate IS NOT NULL THEN foods.openingDate + products.openLife ELSE '1970-01-01' END)
-    //     case_(
-    //         foods.openingDate.isNotNull(),
-    //         foods.openingDate + products.openLife * const Expression<int>(86400), // 86400 is number of seconds in a day
-    //         const Expression<DateTime>('1970-01-01')
-    //     ).coalesce(foods.expiryDate)
-    //         .alias('dynamicExpiryDate'),
-    //   ])
-    // // Order by dynamicExpiryDate
-    //   ..orderBy([
-    //     OrderingTerm.asc(Expression<DateTime>('dynamicExpiryDate'))
-    //   ]);
-    // // Map the stream of rows to a stream of FoodWithProductInfo
-    // return query.watch().map((rows) {
-    //   return rows.map((row) {
-    //     return FoodWithProductInfo(
-    //       FoodEntry(id: row.readString('food_id'),
-    //       name: row.readString('food_name'),
-    //       desc: row.readString('food_desc'),
-    //       expiryDate: row.readDateTime('food_expiryDate'),
-    //       openingDate: row.readDateTime('food_openingDate'),
-    //       amount: row.readInt('food_amount'),), Product(
-    //       storingLocation: row.readString('product_storingLocation'),
-    //       openLife: row.readInt('product_openLife'),
-    //       openLocation: row.readString('product_openLocation'),
-    //       unit: row.readString('product_unit'),
-    //       basicAmount: row.readInt('product_basicAmount'),),
-    //       dynamicExpiryDate: row.readDateTime('dynamicExpiryDate')!, // Ensure it is non-null
-    //     );
-    //   }).toList();
-    // });
   }
 }
