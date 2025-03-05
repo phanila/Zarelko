@@ -49,13 +49,19 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
 
   var player = AudioPlayer();
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     switch (state) {
       case AppLifecycleState.resumed:
         print("app in resumed");
-        player.play(AssetSource("EatingSound.mp3"));
+        player.play(AssetSource("Zarelko.mp3"));
         break;
       case AppLifecycleState.inactive:
         print("app in inactive");
