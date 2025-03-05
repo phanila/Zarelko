@@ -145,7 +145,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Update a Food
-  Future<int> updateFoodRecord({required String id, FoodEntry? food}) async {
+  Future<int> updateFoodRecord({required String id, FoodsCompanion? food}) async {
     // final existingRecord = await (select(foods)..where((tbl) => tbl.id.equals(id))).getSingle();
     // final newFood = food ?? existingRecord.data;
     return await (update(foods)

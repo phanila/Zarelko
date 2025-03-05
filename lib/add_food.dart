@@ -76,6 +76,8 @@ class _FoodFormState extends State<FoodForm> {
   DateTime? _openingDate;
   int times = 1;
 
+  DateTime expiryDateDefault = DateTime.now().add(Duration(days: 7));
+
   final TextEditingController _controlExpireDate = TextEditingController();
   final TextEditingController _controlOpeningDate = TextEditingController();
 
@@ -86,7 +88,7 @@ class _FoodFormState extends State<FoodForm> {
     // Initialize form fields with values from FoodEntry, if available
     _name = widget.foodEntry?.name ?? '';
     _desc = widget.foodEntry?.desc;
-    _expiryDate = widget.foodEntry?.expiryDate ?? DateTime.now().add(Duration(days: 7));
+    _expiryDate = widget.foodEntry?.expiryDate ?? expiryDateDefault;
     _openingDate = widget.foodEntry?.openingDate;
     _controlExpireDate.text = DateFormat("dd-MM-yyyy").format(_expiryDate);
     if (_openingDate != null) {
@@ -113,12 +115,12 @@ class _FoodFormState extends State<FoodForm> {
                     initialValue: _desc),
                 const SizedBox(height: 12),
                 _buildDateField("Expiry Date", (value) {
-                  _expiryDate = value!;
+                  _expiryDate = value ?? expiryDateDefault;
                 },_controlExpireDate),
                 // Opening date
                 const SizedBox(height: 12),
                 _buildDateField("Opening Date", (value) {
-                  _openingDate = value!;
+                  _openingDate = value;
                 },_controlOpeningDate),
                 if (!widget.toEdit) const SizedBox(height: 20),
                 if (!widget.toEdit) CounterField(label:"How many",onSaved: (value) {times = int.parse(value!);},initialValue: times,),
@@ -209,7 +211,11 @@ class _FoodFormState extends State<FoodForm> {
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         suffixIcon: IconButton(
-          onPressed: controller.clear,
+          onPressed: () {
+            controller.clear();
+            onTap(null);
+            print(_openingDate);
+            },
           icon: Icon(Icons.clear),
         ),
       ),
@@ -263,13 +269,14 @@ class _FoodFormState extends State<FoodForm> {
           _formGlobalKey.currentState!.save();
           print(widget.foodEntry);
           if (widget.toEdit) {
+            print("Editing... ${_openingDate}");
             await appDb.updateFoodRecord(id: widget.foodEntry!.id,
-                food: FoodEntry(
-                  id: widget.foodEntry!.id,
-                  name: _name,
-                  desc: _desc,
-                  expiryDate: _expiryDate,
-                  openingDate: _openingDate,
+                food: FoodsCompanion(
+                  id: Value(widget.foodEntry!.id),
+                  name: Value(_name),
+                  desc: Value(_desc),
+                  expiryDate: Value(_expiryDate),
+                  openingDate: Value(_openingDate),
                 ),);
             //Navigator.pop(context, "$_name");
           }

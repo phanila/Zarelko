@@ -118,7 +118,7 @@ class FoodListTile extends StatelessWidget {
                   subtitle: Text("${element.food.desc!}\n${element.finalPlace}"),
                   trailing: isOpened ?  TextButton(
                       onPressed: () {
-                    FoodEntry newFood = element.food.copyWith(openingDate: Value(DateTime.now()));
+                    FoodsCompanion newFood = element.food.toCompanion(false).copyWith(openingDate: Value(DateTime.now().zeroTime()));
                     appDb.updateFoodRecord(id: element.food.id,food: newFood);
                   },
                       child: Text("Open")
