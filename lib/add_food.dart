@@ -155,6 +155,10 @@ class _AddFoodPageState extends State<AddFoodPage> {
         labelText: label,
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        suffixIcon: IconButton(
+          onPressed: controller.clear,
+          icon: Icon(Icons.clear),
+        ),
       ),
       onTap: () async {
         DateTime? pickedDate = await showDatePicker(
