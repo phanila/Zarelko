@@ -1,7 +1,8 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:zarelko/add_product.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
 import 'package:zarelko/notifications_service.dart';
@@ -10,7 +11,16 @@ import 'form_widget/counter_field.dart';
 import 'main.dart';
 
 class AddFoodPage extends StatefulWidget {
-  const AddFoodPage({super.key});
+  const AddFoodPage({
+    super.key,
+    this.initialFood,
+    this.initialProduct,
+    required this.toEdit,
+  });
+
+  final FoodEntry? initialFood;
+  final Product? initialProduct;
+  final bool toEdit;
 
   @override
   State<StatefulWidget> createState() {
@@ -19,10 +29,50 @@ class AddFoodPage extends StatefulWidget {
 }
 
 class _AddFoodPageState extends State<AddFoodPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.toEdit?"Edit food":"Add food"),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Expanded(child: FoodForm(toEdit:widget.toEdit,foodEntry: widget.initialFood,)),
+              const SizedBox(height: 20),
+              Expanded(child: widget.initialProduct != null? ProductForm(title: "Edit",initialName: widget.initialProduct?.name,
+                initialOpenLife: widget.initialProduct?.openLife,
+                initialStoringLocation: widget.initialProduct?.storingLocation,
+                initialOpenLocation: widget.initialProduct?.openLocation,)
+           :Text("Hihihi")) ]
+          )),
+      ),
+    );
+  }
+}
+class FoodForm extends StatefulWidget {
+  const FoodForm({
+    super.key,
+    this.foodEntry,  // Accept FoodEntry
+    required this.toEdit,  // Accept the form title
+  });
+
+  final FoodEntry? foodEntry;  // This will be used to initialize form fields
+  final bool toEdit;  // The title of the form
+
+  @override
+  State<FoodForm> createState() => _FoodFormState();
+}
+
+class _FoodFormState extends State<FoodForm> {
   final _formGlobalKey = GlobalKey<FormState>();
-  String _name = '';
+  late String _name;
   String? _desc;
-  DateTime _expiryDate = DateTime.now().add(Duration(days: 7));
+  late DateTime _expiryDate;
   DateTime? _openingDate;
   int times = 1;
 
@@ -30,18 +80,24 @@ class _AddFoodPageState extends State<AddFoodPage> {
   final TextEditingController _controlOpeningDate = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+
+    // Initialize form fields with values from FoodEntry, if available
+    _name = widget.foodEntry?.name ?? '';
+    _desc = widget.foodEntry?.desc;
+    _expiryDate = widget.foodEntry?.expiryDate ?? DateTime.now().add(Duration(days: 7));
+    _openingDate = widget.foodEntry?.openingDate;
+    _controlExpireDate.text = DateFormat("dd-MM-yyyy").format(_expiryDate);
+    if (_openingDate != null) {
+      _controlOpeningDate.text = DateFormat("dd-MM-yyyy").format(_openingDate!);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("Add Food"),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
+    return Form(
             key: _formGlobalKey,
             child: ListView(
               children: [
@@ -53,7 +109,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 // desc
                 buildTextFormField("Description", (value) {
                   _desc = value!;
-                },(value) {return null;}),
+                },(value) {return null;},
+                    initialValue: _desc),
                 const SizedBox(height: 12),
                 _buildDateField("Expiry Date", (value) {
                   _expiryDate = value!;
@@ -63,18 +120,14 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 _buildDateField("Opening Date", (value) {
                   _openingDate = value!;
                 },_controlOpeningDate),
-                const SizedBox(height: 20),
-                CounterField(label:"How many",onSaved: (value) {times = int.parse(value!);},initialValue: times,),
+                if (!widget.toEdit) const SizedBox(height: 20),
+                if (!widget.toEdit) CounterField(label:"How many",onSaved: (value) {times = int.parse(value!);},initialValue: times,),
                 const SizedBox(height: 20),
                 _buildSubmitButton(),
               ],
             ),
-          ),
-        ),
-      ),
-    );
+      );
   }
-
 
   Widget _buildAutocompleteFormField(
       String label,
@@ -197,7 +250,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 ),
                 TextButton(
                   onPressed: () async  {
-                    await navigateAndDisplayAddPage(context, 1, Product(id: "", name: _name, openLife: 7),false);
+                    await navigateAndDisplayAddPage(context, 1, Product(id: "", name: _name, openLife: 7),null,false);
                     Navigator.pop(context);
                     },
                   child: const Text('Yes'),
@@ -208,21 +261,38 @@ class _AddFoodPageState extends State<AddFoodPage> {
         }
         else if (_formGlobalKey.currentState!.validate()) {
           _formGlobalKey.currentState!.save();
-          for (int i = 0; i < times; i++) {
-            await appDb.addFood(
-              FoodsCompanion(
-                id: Value.absent(),
-                name: Value(_name),
-                desc: Value(_desc),
-                expiryDate: Value(_expiryDate),
-                openingDate: Value(_openingDate),
-              ),
-            );
-
-            NotificationsService.scheduleNotification(_name, "expires on $_expiryDate", _expiryDate.subtract(Duration(days: 7)));
-            NotificationsService.scheduleNotification(_name, "expires today", _expiryDate);
+          print(widget.foodEntry);
+          if (widget.toEdit) {
+            await appDb.updateFoodRecord(id: widget.foodEntry!.id,
+                food: FoodEntry(
+                  id: widget.foodEntry!.id,
+                  name: _name,
+                  desc: _desc,
+                  expiryDate: _expiryDate,
+                  openingDate: _openingDate,
+                ),);
+            //Navigator.pop(context, "$_name");
           }
-          Navigator.pop(context, "$_name x$times");
+          else {
+            for (int i = 0; i < times; i++) {
+              await appDb.addFood(
+                FoodsCompanion(
+                  id: Value.absent(),
+                  name: Value(_name),
+                  desc: Value(_desc),
+                  expiryDate: Value(_expiryDate),
+                  openingDate: Value(_openingDate),
+                ),
+              );
+
+              // NotificationsService.scheduleNotification(
+              //     _name, "expires on $_expiryDate",
+              //     _expiryDate.subtract(Duration(days: 7)));
+              // NotificationsService.scheduleNotification(
+              //     _name, "expires today", _expiryDate);
+            }
+            Navigator.pop(context, "$_name x$times");
+          }
         }
       },
       style: FilledButton.styleFrom(
@@ -232,7 +302,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-      child: const Text("Add Food"),
+      child: Text(widget.toEdit? "Edit": "Add"),
     );
   }
 }

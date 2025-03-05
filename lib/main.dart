@@ -99,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       body: [HomePageBody(), ProductPageBody()][currentIndex],
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-          navigateAndDisplayAddPage(context, currentIndex, null,false);
+          navigateAndDisplayAddPage(context, currentIndex, null,null,false);
           },
           child: const Icon(Icons.add),
         ),
@@ -123,8 +123,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 }
 
-Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, Product? product, bool toEdit) async {
-  final destAdd = [AddFoodPage(),AddProductPage(title:toEdit?"Edit product":"Add product",initialProduct: product,)];
+Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, Product? product, FoodEntry? food,bool toEdit) async {
+  final destAdd = [AddFoodPage(toEdit:toEdit,initialFood: food,initialProduct: product,),AddProductPage(title:toEdit?"Edit product":"Add product",initialProduct: product,)];
   final result = await Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => destAdd[currentIndex]),
@@ -136,8 +136,9 @@ Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, P
   // and show the new result.
   if (result != null) {
     var name = ["food","product"];
+    var prefix = toEdit? "Edited":"Added";
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('Added ${name[currentIndex]}: $result')));
+      ..showSnackBar(SnackBar(content: Text('${prefix} ${name[currentIndex]}: $result')));
   }
 }

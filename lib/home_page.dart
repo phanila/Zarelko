@@ -8,6 +8,7 @@ import 'package:zarelko/database/data_structures.dart';
 import 'package:zarelko/database/database.dart';
 import 'app_extensions.dart';
 import 'database/powersync.dart';
+import 'main.dart';
 
 class HomePageBody extends StatelessWidget {
   const HomePageBody({super.key});
@@ -69,7 +70,10 @@ class FoodListTile extends StatelessWidget {
             children: [
               SlidableAction(
                 borderRadius: BorderRadius.horizontal(left:Radius.circular(15)),
-                onPressed: (context) {},
+                onPressed: (context) {
+
+                  navigateAndDisplayAddPage(context, 0, element.product,element.food,true);
+                },
                 backgroundColor: Color(0xFF0392CF),
                 foregroundColor: Colors.white,
                 icon: Icons.edit,
