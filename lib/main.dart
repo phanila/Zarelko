@@ -1,21 +1,29 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:workmanager/workmanager.dart';
 import 'dart:core';
 import 'package:zarelko/add_food.dart';
 import 'package:zarelko/add_product.dart';
 import 'package:zarelko/database/powersync.dart';
 import 'package:zarelko/notifications_service.dart';
+import 'package:zarelko/workmanger_service.dart';
 import 'database/database.dart';
 import 'home_page.dart';
 import 'product_page.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:logger/logger.dart';
+import 'package:workmanager/workmanager.dart';
+
+import 'database/powersync.dart';
+import 'notifications_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); //required to get sqlite filepath from path_provider before UI has initialized
   await openDatabase();
   await NotificationsService.init();
-  tz.initializeTimeZones();
+  initializeWorkManager();
+  Workmanager().registerOneOffTask("daily_expiry_check", "simpleTask");
   runApp(MyApp());
 }
 
@@ -92,7 +100,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         title: Text(widget.title),
         actions: [
           ElevatedButton(onPressed: (){
-            NotificationsService.showInstantNotification("Test", "notification service");
+            Workmanager().registerOneOffTask(
+                "daily_expiry_check",
+                "daily_expiry_check"
+            );
+            //NotificationsService().showInstantNotification("instant", "");
+            //NotificationsService.scheduleDelayedNotification("Test", "notification service",DateTime.now().add(Duration(seconds: 10)));
+            //NotificationsService.getScheduledNotifications();
           }, child: Icon(Icons.sync))
         ],
       ),

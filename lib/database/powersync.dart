@@ -133,7 +133,7 @@ class SupabaseConnector extends PowerSyncBackendConnector {
 
 /// Global reference to the database
 late final PowerSyncDatabase db;
-late final AppDatabase appDb;
+late AppDatabase appDb;
 
 bool isLoggedIn() {
   return Supabase.instance.client.auth.currentSession?.accessToken != null;

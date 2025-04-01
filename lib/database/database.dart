@@ -83,11 +83,31 @@ class AppDatabase extends _$AppDatabase {
   //         .watch();
   //   }
   // }
+
   // Get all Food
   Stream<List<FoodEntry>> getAllFood() {
     return (select(foods)
       ..where((tbl) => tbl.id.isNotNull())
       ..orderBy([(tbl) => OrderingTerm.asc(tbl.expiryDate)])).watch();
+  }
+
+  Future<List<FoodEntry>> getExpiringToday() async {
+    final now = DateTime.now();
+    //final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    final query = select(foods)
+      ..where((t) => t.expiryDate.isSmallerOrEqualValue(endOfDay));
+    return query.get();
+  }
+  Future<List<FoodEntry>> getExpiringInWeek() async {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day).add(Duration(days: 1));
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59).add(Duration(days: 7));
+
+    final query = select(foods)
+      ..where((t) => t.expiryDate.isBetweenValues(startOfDay,endOfDay));
+    return query.get();
   }
 
   // Get all Products

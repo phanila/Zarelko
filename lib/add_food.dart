@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:zarelko/add_product.dart';
+import 'package:zarelko/app_extensions.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
 import 'package:zarelko/notifications_service.dart';
@@ -44,11 +45,11 @@ class _AddFoodPageState extends State<AddFoodPage> {
             children: [
               Expanded(child: FoodForm(toEdit:widget.toEdit,foodEntry: widget.initialFood,)),
               const SizedBox(height: 20),
-              Expanded(child: widget.initialProduct != null? ProductForm(title: "Edit",initialName: widget.initialProduct?.name,
+              if (widget.toEdit) Expanded(child: ProductForm(title: "Edit",initialName: widget.initialProduct?.name,
                 initialOpenLife: widget.initialProduct?.openLife,
                 initialStoringLocation: widget.initialProduct?.storingLocation,
                 initialOpenLocation: widget.initialProduct?.openLocation,)
-           :Text("Hihihi")) ]
+           ) ]
           )),
       ),
     );
@@ -291,12 +292,12 @@ class _FoodFormState extends State<FoodForm> {
                   openingDate: Value(_openingDate),
                 ),
               );
-
-              // NotificationsService.scheduleNotification(
-              //     _name, "expires on $_expiryDate",
-              //     _expiryDate.subtract(Duration(days: 7)));
-              // NotificationsService.scheduleNotification(
-              //     _name, "expires today", _expiryDate);
+              //
+              // NotificationsService.scheduleDelayedNotification(
+              //      _name, "expires on $_expiryDate",
+              //     _expiryDate.subtract(Duration(days: 7)).zeroTime().add(Duration(hours: 10,minutes: 10)));
+              // NotificationsService.scheduleDelayedNotification(
+              //     _name, "expires today", _expiryDate.zeroTime().add(Duration(hours: 10,minutes: 10)));
             }
             Navigator.pop(context, "$_name x$times");
           }
