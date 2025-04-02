@@ -23,7 +23,6 @@ Future<void> main() async {
   await openDatabase();
   await NotificationsService.init();
   initializeWorkManager();
-  Workmanager().registerOneOffTask("daily_expiry_check", "simpleTask");
   runApp(MyApp());
 }
 
