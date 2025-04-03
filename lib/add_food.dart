@@ -182,7 +182,7 @@ class _FoodFormState extends State<FoodForm> {
                   });
                 }
                 else {
-                  filteredProducts.add(textEditingValue.text);
+                  filteredProducts.insert(0, textEditingValue.text);
                 }
               }
               // If there is only one match, automatically select it

@@ -58,7 +58,6 @@ class ProductForm extends StatefulWidget {
     this.initialOpenLocation,
     required this.title,
   });
-
   final String? initialName;
   final int? initialOpenLife;
   final String? initialStoringLocation;
@@ -74,6 +73,7 @@ class _ProductFormState extends State<ProductForm> {
   final _formGlobalKey = GlobalKey<FormState>();
 
   late String _name;
+  String? initialName;
 
   late int _openLife;
 
@@ -87,6 +87,8 @@ class _ProductFormState extends State<ProductForm> {
 
     // Initialize the form fields with the passed initial values, if any
     _name = widget.initialName ?? '';
+    // null if a new product
+    initialName = widget.initialOpenLocation != null?widget.initialName:null;
     _openLife = widget.initialOpenLife ?? 1;
     _storingLocation = widget.initialStoringLocation;
     _openLocation = widget.initialOpenLocation;
@@ -174,7 +176,7 @@ class _ProductFormState extends State<ProductForm> {
                   });
                 }
                 else {
-                  filteredPlaces.add(textEditingValue.text);
+                  filteredPlaces.insert(0, textEditingValue.text);
                 }
               }
               // If there is only one match, automatically select it
@@ -206,7 +208,7 @@ class _ProductFormState extends State<ProductForm> {
               openLife: Value(_openLife),
               openLocation: Value(_openLocation),
               storingLocation: Value(_storingLocation),
-            ),
+            ),initialName
           );
           Navigator.pop(context, _name);
         }
