@@ -22,7 +22,6 @@ class FoodWithProductInfo {
   }
 
   static _computeFinalPlace(FoodEntry food, Product product) {
-    if (food.name == 'tortilla') print("${food.openingDate} ${product.openLocation},${product.openLocation == ""}, ${product.storingLocation}, ${product.openLocation}");
     return food.openingDate == null || product.openLocation == ""? product.storingLocation: product.openLocation;
   }
 }

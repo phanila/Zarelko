@@ -51,14 +51,27 @@ class AppDatabase extends _$AppDatabase {
     return await into(foods).insert(food);
   }
 
-  Future<int> addOrUpdateProduct(ProductsCompanion product) async {
-    if (await isNotProductInDatabase(product.name.value)) {
-      return await into(products).insert(product);
-    } else {
-      return await (update(products)
+  Future<void> addOrUpdateProduct(ProductsCompanion product, String? prevName) async {
+    if (prevName == null) {
+      await into(products).insert(product);
+    } else {updateFoodNames(prevName, product.name.value);
+      await (update(products)
         ..where((tbl) => tbl.name.equals(product.name.value))).write(product,);
+      return updateFoodNames(prevName, product.name.value);
     }
   }
+  // Change name of product for every affected food
+  Future<void> updateFoodNames(String prevName, String newName) async {
+    // Perform the update operation on the foods table where name matches prevName
+    await (update(foods)
+      ..where((tbl) => tbl.name.equals(prevName))) // Correct function form
+        .write(FoodsCompanion(
+      name: Value(newName), // Set the new name
+    ));
+
+    print("Updated all food names from '$prevName' to '$newName'");
+  }
+
 
   // Get all food with information from product
   Stream<List<FoodWithProductInfo>> getAllFoodWithProductInfo() {

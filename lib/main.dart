@@ -99,10 +99,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         title: Text(widget.title),
         actions: [
           ElevatedButton(onPressed: (){
-            Workmanager().registerOneOffTask(
-                "daily_expiry_check",
-                "daily_expiry_check"
-            );
+            Workmanager().cancelAll();
+            Workmanager().registerOneOffTask("task-identifier-simple", "simple_task");
+
+            Workmanager().registerOneOffTask("task-identifier", "daily_expiry_check");
+            scheduleDailyTaskAt9AM();
             //NotificationsService().showInstantNotification("instant", "");
             //NotificationsService.scheduleDelayedNotification("Test", "notification service",DateTime.now().add(Duration(seconds: 10)));
             //NotificationsService.getScheduledNotifications();

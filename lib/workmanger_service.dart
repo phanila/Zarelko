@@ -49,6 +49,7 @@ void initializeWorkManager() {
   scheduleDailyTaskAt9AM();
 }
 
+@pragma('vm:entry-point')
 void callbackDispatcher() {
   print("task in workmanager");
   Workmanager().executeTask((task, inputData) async {
@@ -66,19 +67,21 @@ void callbackDispatcher() {
 }
 
 void scheduleDailyTaskAt9AM() {
-  final now = DateTime.now();
-  final targetTime = DateTime(now.year, now.month, now.day, 8, 0, 0); // 9 AM today
+  final now = DateTime.now(); // Get current local time
 
-  // If the target time has already passed for today, schedule for tomorrow
+  // Target time in local timezone (8:30 AM today)
+  final targetTime = DateTime(now.year, now.month, now.day, 8, 30, 0); // 8:30 AM today
+
+  // If the target time has already passed today, schedule for tomorrow
+  DateTime adjustedTargetTime = targetTime;
   if (now.isAfter(targetTime)) {
-    targetTime.add(Duration(days: 1));
+    adjustedTargetTime = targetTime.add(Duration(days: 1)); // Schedule for tomorrow
   }
 
-  final tzTargetTime = tz.TZDateTime.from(targetTime, tz.local);
-
-  final delay = tzTargetTime.isBefore(DateTime.now()) ?
-  tzTargetTime.add(Duration(days: 1)).difference(DateTime.now()) :
-  tzTargetTime.difference(DateTime.now());
+  // Calculate the delay by subtracting current time from the adjusted target time
+  final delay = adjustedTargetTime.isBefore(now)
+      ? adjustedTargetTime.add(Duration(days: 1)).difference(now)
+      : adjustedTargetTime.difference(now);
   // Register the periodic task to execute every day at 9 AM
   Workmanager().registerPeriodicTask(
     '1', // Task ID
@@ -86,6 +89,6 @@ void scheduleDailyTaskAt9AM() {
     frequency: Duration(days: 1), // Repeats every day
     initialDelay: delay
     );
-
+  print(delay);
   print("Task registered to run daily at 9 AM");
 }
