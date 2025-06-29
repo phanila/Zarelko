@@ -10,85 +10,118 @@ import 'app_extensions.dart';
 import 'database/powersync.dart';
 import 'main.dart';
 
-class HomePageBody extends StatelessWidget {
+class HomePageBody extends StatefulWidget {
   const HomePageBody({super.key});
 
   @override
+  State<HomePageBody> createState() => _HomePageBodyState();
+}
+
+class _HomePageBodyState extends State<HomePageBody> {
+  String searchQuery = '';
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: appDb.getAllFoodWithProductInfo(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Text("Error from database: ${snapshot.error}");
-        }
-
-        List<FoodWithProductInfo>? foodList = snapshot.data;
-        switch (snapshot.connectionState) {
-          case ConnectionState.waiting:
-          case ConnectionState.none:
-            return LinearProgressIndicator();
-          case ConnectionState.active:
-          case ConnectionState.done:
-            if (foodList!.isNotEmpty) {
-              foodList.sort((a, b) => a.finalDate.compareTo(b.finalDate));
-
-              // Group items by finalDate
-              var groupedByDate = <DateTime, List<FoodWithProductInfo>>{};
-              for (var food in foodList) {
-                final date = food.finalDate;
-                if (groupedByDate[date] == null) {
-                  groupedByDate[date] = [];
-                }
-                groupedByDate[date]!.add(food);
-              }
-
-              // Sort the keys to get the final dates in order
-              var sortedDates = groupedByDate.keys.toList()..sort();
-
-              return ListView.builder(
-                itemCount: sortedDates.length,
-                itemBuilder: (context, index) {
-                  var date = sortedDates[index];
-                  var foodItems = groupedByDate[date]!;
-
-                  // Display the final date as a header
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Text(
-                          DateFormat("EEEE dd.MM.yyyy").format(date),
-                          style: TextStyle(
-                            fontSize: 18,
-                            // fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      // List the food items for this finalDate
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: foodItems.length,
-                        itemBuilder: (context, itemIndex) {
-                          return FoodListTile(element: foodItems[itemIndex]);
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            }
-
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Image(image: AssetImage("assets/nofood.jpg")),
+    return Column(
+        children: [
+          // Search Field
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: 'Search...',
+                border: OutlineInputBorder(),
               ),
-            );
-        }
-      },
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+            ),
+          ),
+
+          // StreamBuilder
+          Expanded(
+              child: StreamBuilder(
+                stream: appDb.getAllFoodWithProductInfo(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text("Error from database: ${snapshot.error}");
+                  }
+
+                  List<FoodWithProductInfo>? foodList = snapshot.data;
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                    case ConnectionState.none:
+                      return LinearProgressIndicator();
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      if (foodList!.isNotEmpty) {
+                        foodList = foodList.where((item) =>
+                            item.food.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                            item.food.desc!.toLowerCase().contains(searchQuery.toLowerCase())
+                        ).toList();
+                        foodList.sort((a, b) => a.finalDate.compareTo(b.finalDate));
+
+                        // Group items by finalDate
+                        var groupedByDate = <DateTime, List<FoodWithProductInfo>>{};
+                        for (var food in foodList) {
+                          final date = food.finalDate;
+                          if (groupedByDate[date] == null) {
+                            groupedByDate[date] = [];
+                          }
+                          groupedByDate[date]!.add(food);
+                        }
+
+                        // Sort the keys to get the final dates in order
+                        var sortedDates = groupedByDate.keys.toList()..sort();
+
+                        return ListView.builder(
+                          itemCount: sortedDates.length,
+                          itemBuilder: (context, index) {
+                            var date = sortedDates[index];
+                            var foodItems = groupedByDate[date]!;
+
+                            // Display the final date as a header
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(10.0),
+                                  child: Text(
+                                    DateFormat("EEEE dd.MM.yyyy").format(date),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      // fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                // List the food items for this finalDate
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: foodItems.length,
+                                  itemBuilder: (context, itemIndex) {
+                                    return FoodListTile(element: foodItems[itemIndex]);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Image(image: AssetImage("assets/nofood.jpg")),
+                        ),
+                      );
+                  }
+                },
+              )
+          )
+        ]
     );
   }
 }
@@ -104,7 +137,7 @@ class FoodListTile extends StatelessWidget {
     var isOpened = element.food.openingDate == null;
     if (DateTime.now().isAfter(element.finalDate)) {
       color = Colors.red;
-    } else if (element.finalDate.difference(DateTime.now()).inDays <= 7) {
+    } else if (element.finalDate.difference(DateTime.now()).inDays < 7) {
       color = Colors.amber;
     }
     return Padding(
