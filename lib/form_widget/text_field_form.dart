@@ -6,7 +6,6 @@ Widget buildTextFormField(
     Function(String?) validator,
 {String? initialValue}) {
   return TextFormField(
-    maxLength: 20,
     decoration: InputDecoration(
       labelText: label,
       border: OutlineInputBorder(),
