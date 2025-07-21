@@ -19,6 +19,18 @@ class HomePageBody extends StatefulWidget {
 
 class _HomePageBodyState extends State<HomePageBody> {
   String searchQuery = '';
+  List<String> availableCategories = [];
+  List<String> selectedCategories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    appDb.getAllCategories().then((cats) {
+      setState(() {
+        availableCategories = cats;
+      });
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -38,6 +50,7 @@ class _HomePageBodyState extends State<HomePageBody> {
               },
             ),
           ),
+          buildCategoryFilterPanel(),
 
           // StreamBuilder
           Expanded(
@@ -56,10 +69,15 @@ class _HomePageBodyState extends State<HomePageBody> {
                     case ConnectionState.active:
                     case ConnectionState.done:
                       if (foodList!.isNotEmpty) {
-                        foodList = foodList.where((item) =>
-                            item.food.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-                            item.food.desc!.toLowerCase().contains(searchQuery.toLowerCase())
-                        ).toList();
+                        foodList = foodList.where((item) {
+                          final matchesSearch = item.food.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                              (item.food.desc ?? "").toLowerCase().contains(searchQuery.toLowerCase());
+
+                          final matchesCategories = selectedCategories.isEmpty ||
+                              selectedCategories.every((selectedCat) => item.categories.contains(selectedCat));
+
+                          return matchesSearch && matchesCategories;
+                        }).toList();
                         foodList.sort((a, b) => a.finalDate.compareTo(b.finalDate));
 
                         // Group items by finalDate
@@ -124,6 +142,48 @@ class _HomePageBodyState extends State<HomePageBody> {
         ]
     );
   }
+  Widget buildCategoryFilterPanel() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Row(
+        children: [
+          TextButton.icon(
+            onPressed: selectedCategories.isEmpty
+                ? null
+                : () {
+              setState(() {
+                selectedCategories.clear();
+              });
+            },
+            icon: Icon(Icons.clear),
+            label: Text("Clear All"),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.redAccent,
+            ),
+          ),
+          ...availableCategories.map((category) {
+            final isSelected = selectedCategories.contains(category);
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: FilterChip(
+                label: Text(category),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() {
+                    selected
+                        ? selectedCategories.add(category)
+                        : selectedCategories.remove(category);
+                  });
+                },
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
 }
 
 class FoodListTile extends StatelessWidget {
@@ -194,7 +254,19 @@ class FoodListTile extends StatelessWidget {
                   element.food.name.capitalize(),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                 ),
-            subtitle: Text("${element.food.desc!}\n${element.finalPlace}"),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("${element.food.desc ?? ''}\n${element.finalPlace}"),
+                Wrap(
+                  spacing: 6,
+                  children: element.categories.map((cat) => Chip(
+                    label: Text(cat),
+                    backgroundColor: Colors.purple.shade100,
+                  )).toList(),
+                ),
+              ],
+            ),
             trailing: isOpened
                 ? TextButton(
               onPressed: () {

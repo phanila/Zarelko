@@ -5,10 +5,12 @@ class FoodWithProductInfo {
   final Product product;
   final DateTime finalDate;
   final String finalPlace;
+  final List<String> categories;
 
   FoodWithProductInfo({
     required this.food,
-    required this.product}): finalDate = _computeFinalDate(food, product),finalPlace = _computeFinalPlace(food, product);
+    required this.product,
+    required this.categories}): finalDate = _computeFinalDate(food, product),finalPlace = _computeFinalPlace(food, product);
 
   // Private method to compute finalDate
   static DateTime _computeFinalDate(FoodEntry food, Product product) {
@@ -25,8 +27,12 @@ class FoodWithProductInfo {
     return food.openingDate == null || product.openLocation == ""? product.storingLocation: product.openLocation;
   }
 }
-class FoodWithPlace {
-  final FoodEntry food;
+class ProductWithCategories {
+  final Product product;
+  final List<String> categories;
 
-  FoodWithPlace(this.food);
+  ProductWithCategories({
+    required this.product,
+    required this.categories,
+  });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:core';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:zarelko/database/data_structures.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/main.dart';
 import 'database/powersync.dart';
@@ -9,11 +10,11 @@ class ProductPageBody extends StatelessWidget {
   const ProductPageBody({super.key});
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(stream: appDb.getAllProducts(), builder: (context,snapshot) {
+    return StreamBuilder(stream: appDb.getAllProductWithCategories(), builder: (context,snapshot) {
       if (snapshot.hasError){
         return Text("Error from database");
       }
-      List<Product>? productList = snapshot.data;
+      List<ProductWithCategories>? productList = snapshot.data;
       switch(snapshot.connectionState){
         case ConnectionState.waiting:
         case ConnectionState.none:
@@ -42,7 +43,7 @@ class ProductPageBody extends StatelessWidget {
 class ProductListTile extends StatelessWidget {
   const ProductListTile({super.key, required this.product});
 
-  final Product product;
+  final ProductWithCategories product;
   @override
   Widget build(BuildContext context) {
     var color = Colors.white;
@@ -56,7 +57,7 @@ class ProductListTile extends StatelessWidget {
               SlidableAction(
                 borderRadius: BorderRadius.horizontal(left:Radius.circular(15)),
                 onPressed: (context) {
-                  navigateAndDisplayAddPage(context, 1, product,null,true);
+                  navigateAndDisplayAddPage(context, 1, product.product,null,true);
                 },
                 backgroundColor: Color(0xFF0392CF),
                 foregroundColor: Colors.white,
@@ -70,7 +71,7 @@ class ProductListTile extends StatelessWidget {
                   builder: (BuildContext context) => AlertDialog(
                     title: const Text('Are you sure?'),
                     content: FutureBuilder(
-                      future: appDb.allFoodOfThisProduct(product.name),
+                      future: appDb.allFoodOfThisProduct(product.product.name),
                       builder: (context,snapshot) {
                         if (snapshot.hasError) {
                           return Text("Error from database");
@@ -95,7 +96,7 @@ class ProductListTile extends StatelessWidget {
                       ),
                       TextButton(
                         onPressed: () {
-                          appDb.deleteProductRecord(product.name);
+                          appDb.deleteProductRecord(product.product.name);
                           Navigator.pop(context);},
                         child: const Text('Yes'),
                       ),
@@ -112,12 +113,32 @@ class ProductListTile extends StatelessWidget {
           child: Card(
               color: color,
               child:ListTile(
-                  title:Text(product.name),
-                  subtitle: Text("Where:${product.storingLocation!}, opened:${product.openLocation!}"),
-                  trailing: Text("How many days can be opened: ${product.openLife}")
-              )
-          )
-      ),
+                title: Text(
+                  product.product.name,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Where: ${product.product.storingLocation ?? 'Unknown'}, "
+                          "Opened at: ${product.product.openLocation ?? 'Unknown'}",
+                    ),
+                    const SizedBox(height: 4),
+                    Text("Shelf life after opening: ${product.product.openLife} days"),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      children: product.categories.map((cat) => Chip(
+                        label: Text(cat),
+                        backgroundColor: Colors.purple.shade100,
+                      )).toList(),
+                    ),
+                  ],
+                ),
+              ),
+          ),
+      )
     );
   }
 }

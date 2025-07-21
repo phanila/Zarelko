@@ -79,15 +79,27 @@ class AppDatabase extends _$AppDatabase {
       leftOuterJoin(products, products.name.equalsExp(foods.name)),
     ]);
 
-    return query.watch().map((rows) {
-      return rows.map((row) {
+    return query.watch().asyncMap((rows) async {
+      return Future.wait(rows.map((row) async {
+        final food = row.readTable(foods);
+        final product = row.readTable(products);
+
+        // Query the categories for the product
+        final categoryRecords = await (select(productCategories)
+          ..where((cat) => cat.product.equals(product.name)))
+            .get();
+
+        final categoryList = categoryRecords.map((e) => e.category).toList();
+
         return FoodWithProductInfo(
-          food: row.readTable(foods),
-          product: row.readTable(products),
+          food: food,
+          product: product,
+          categories: categoryList, // Now filled!
         );
-      }).toList();
+      }));
     });
   }
+
   // Stream<List<FoodEntry>> foodsInCategory(String? category) {
   //   if (category == null) {
   //     return (select(foods)..where((f) => f.category.isNull())).watch();
@@ -127,6 +139,43 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<Product>> getAllProducts() {
     return (select(products)
       ..orderBy([(tbl) => OrderingTerm.asc(tbl.name)])).watch();
+  }
+
+  Stream<List<ProductWithCategories>> getAllProductWithCategories() {
+    final productAlias = alias(products, 'p');
+    final categoryAlias = alias(productCategories, 'c');
+
+    final query = select(productAlias)
+      ..orderBy([(tbl) => OrderingTerm.asc(tbl.name)]);
+
+    final joinedQuery = query.join([
+      leftOuterJoin(
+        categoryAlias,
+        categoryAlias.product.equalsExp(productAlias.name),
+      )
+    ]);
+
+    return joinedQuery.watch().map((rows) {
+      final grouped = <String, ProductWithCategories>{};
+
+      for (final row in rows) {
+        final product = row.readTable(productAlias);
+        final category = row.readTableOrNull(categoryAlias)?.category;
+
+        if (!grouped.containsKey(product.id)) {
+          grouped[product.id] = ProductWithCategories(
+            product: product,
+            categories: category != null ? [category] : [],
+          );
+        } else {
+          if (category != null && !grouped[product.id]!.categories.contains(category)) {
+            grouped[product.id]!.categories.add(category);
+          }
+        }
+      }
+
+      return grouped.values.toList();
+    });
   }
 
   // Delete a food by id
@@ -176,6 +225,14 @@ class AppDatabase extends _$AppDatabase {
     queryOpen.union(queryStore);
     return queryOpen.map((row) => row.read(openLocation)!).get();
   }
+
+  Future<List<String>> getAllCategories() async {
+    final query = select(productCategories)..distinct;
+    final result = await query.get();
+    final categorySet = result.map((e) => e.category).toSet(); // Remove duplicates
+    return categorySet.toList();
+  }
+
 
   // Update a Food
   Future<int> updateFoodRecord({required String id, FoodsCompanion? food}) async {

@@ -52,7 +52,12 @@ dependencies:
   audioplayers: ^6.2.0
   timezone: ^0.10.0
   flutter_timezone: ^4.1.0
-  workmanager: ^0.5.2
+  workmanager:
+    git:
+      url: https://github.com/fluttercommunity/flutter_workmanager.git
+      path: workmanager
+      ref: main
+
   logger: ^2.5.0
 
 dev_dependencies:
