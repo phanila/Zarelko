@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:zarelko/add_product.dart';
 import 'package:zarelko/app_extensions.dart';
+import 'package:zarelko/database/data_structures.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
 import 'package:zarelko/notifications_service.dart';
@@ -257,7 +258,7 @@ class _FoodFormState extends State<FoodForm> {
                 ),
                 TextButton(
                   onPressed: () async  {
-                    await navigateAndDisplayAddPage(context, 1, Product(id: "", name: _name, openLife: 7),null,false);
+                    await navigateAndDisplayAddPage(context, 1, ProductWithCategories(product: Product(id: "", name: _name, openLife: 7), categories: []),null,false);
                     Navigator.pop(context);
                     },
                   child: const Text('Yes'),

@@ -4,18 +4,14 @@ import 'package:workmanager/workmanager.dart';
 import 'dart:core';
 import 'package:zarelko/add_food.dart';
 import 'package:zarelko/add_product.dart';
+import 'package:zarelko/database/data_structures.dart';
 import 'package:zarelko/database/powersync.dart';
 import 'package:zarelko/notifications_service.dart';
 import 'package:zarelko/workmanger_service.dart';
 import 'database/database.dart';
 import 'home_page.dart';
 import 'product_page.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:logger/logger.dart';
-import 'package:workmanager/workmanager.dart';
 
-import 'database/powersync.dart';
-import 'notifications_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding
@@ -137,8 +133,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 }
 
-Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, Product? product, FoodEntry? food,bool toEdit) async {
-  final destAdd = [AddFoodPage(toEdit:toEdit,initialFood: food,initialProduct: product,),AddProductPage(title:toEdit?"Edit product":"Add product",initialProduct: product,)];
+Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, ProductWithCategories? product, FoodEntry? food,bool toEdit) async {
+  final destAdd = [AddFoodPage(toEdit:toEdit,initialFood: food,initialProduct: product!.product),AddProductPage(title:toEdit?"Edit product":"Add product",initialProduct: product.product,initialCategories: product.categories,)];
   final result = await Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => destAdd[currentIndex]),

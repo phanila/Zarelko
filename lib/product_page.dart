@@ -57,7 +57,7 @@ class ProductListTile extends StatelessWidget {
               SlidableAction(
                 borderRadius: BorderRadius.horizontal(left:Radius.circular(15)),
                 onPressed: (context) {
-                  navigateAndDisplayAddPage(context, 1, product.product,null,true);
+                  navigateAndDisplayAddPage(context, 1, product,null,true);
                 },
                 backgroundColor: Color(0xFF0392CF),
                 foregroundColor: Colors.white,

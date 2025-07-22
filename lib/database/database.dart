@@ -243,4 +243,39 @@ class AppDatabase extends _$AppDatabase {
       food!,
     );
   }
+
+  Future<void> updateProductCategories(String productName, List<String> newCategories) async {
+    // Get existing categories from DB
+    final existingRows = await (select(productCategories)
+      ..where((tbl) => tbl.product.equals(productName)))
+        .get();
+
+    final existingCategories = existingRows.map((e) => e.category).toSet();
+    final newCategoriesSet = newCategories.toSet();
+
+    // Find categories to insert
+    final toInsert = newCategoriesSet.difference(existingCategories);
+
+    // Find categories to delete
+    final toDelete = existingCategories.difference(newCategoriesSet);
+
+    // Insert missing categories
+    for (final cat in toInsert) {
+      await into(productCategories).insert(
+        ProductCategoriesCompanion(
+          product: Value(productName),
+          category: Value(cat),
+        ),
+      );
+    }
+
+    // Delete removed categories
+    for (final cat in toDelete) {
+      await (delete(productCategories)
+        ..where((tbl) =>
+        tbl.product.equals(productName) &
+        tbl.category.equals(cat)))
+          .go();
+    }
+  }
 }

@@ -209,7 +209,7 @@ class FoodListTile extends StatelessWidget {
             SlidableAction(
               //borderRadius: BorderRadius.horizontal(left: Radius.circular(15)),
               onPressed: (context) {
-                navigateAndDisplayAddPage(context, 0, element.product, element.food, true);
+                navigateAndDisplayAddPage(context, 0, ProductWithCategories(product: element.product, categories:  []), element.food, true);
               },
               backgroundColor: Color(0xFF0392CF),
               foregroundColor: Colors.white,

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:zarelko/database/database.dart';
 import 'package:zarelko/form_widget/text_field_form.dart';
@@ -9,11 +9,13 @@ class AddProductPage extends StatefulWidget {
   const AddProductPage({
     super.key,
     this.initialProduct,
+    this. initialCategories,
     required this.title,
   });
 
   final Product? initialProduct;
   final String title;
+  final List<String>? initialCategories;
 
   @override
   State<StatefulWidget> createState() {
@@ -41,6 +43,7 @@ class _AddProductPageState extends State<AddProductPage> {
             initialOpenLife: widget.initialProduct?.openLife,
             initialStoringLocation: widget.initialProduct?.storingLocation,
             initialOpenLocation: widget.initialProduct?.openLocation,
+            initialCategories: widget.initialCategories,
           title: widget.title,),
         ),
       ),
@@ -56,12 +59,14 @@ class ProductForm extends StatefulWidget {
     this.initialOpenLife,
     this.initialStoringLocation,
     this.initialOpenLocation,
+    this.initialCategories,
     required this.title,
   });
   final String? initialName;
   final int? initialOpenLife;
   final String? initialStoringLocation;
   final String? initialOpenLocation;
+  final List<String>? initialCategories;
 
   final String title;
 
@@ -81,6 +86,9 @@ class _ProductFormState extends State<ProductForm> {
 
   String? _openLocation;
 
+  List<String> _selectedCategories = [];
+
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +100,7 @@ class _ProductFormState extends State<ProductForm> {
     _openLife = widget.initialOpenLife ?? 1;
     _storingLocation = widget.initialStoringLocation;
     _openLocation = widget.initialOpenLocation;
+    _selectedCategories = widget.initialCategories!;
   }
 
   @override
@@ -119,6 +128,15 @@ class _ProductFormState extends State<ProductForm> {
           _buildAutocompleteFormField("Where after opening", _openLocation, (value) {
             _openLocation = value!;
           }),
+          const SizedBox(height: 12),
+          CategorySelector(
+            initialCategories: _selectedCategories, // Pass existing categories if editing
+            fetchSuggestions: () => appDb.getAllCategories(),
+            onChanged: (categories) {
+              _selectedCategories = categories;
+            },
+          ),
+
           const SizedBox(height: 20),
           _buildSubmitButton(),
         ],
@@ -210,6 +228,7 @@ class _ProductFormState extends State<ProductForm> {
               storingLocation: Value(_storingLocation),
             ),initialName
           );
+          await appDb.updateProductCategories(_name, _selectedCategories); // or use product ID if available
           Navigator.pop(context, _name);
         }
       },
@@ -221,6 +240,110 @@ class _ProductFormState extends State<ProductForm> {
         ),
       ),
       child: Text(widget.title),
+    );
+  }
+}
+
+class CategorySelector extends StatefulWidget {
+  final List<String> initialCategories;
+  final Future<List<String>> Function()? fetchSuggestions;
+  final void Function(List<String>) onChanged;
+
+  const CategorySelector({
+    Key? key,
+    this.initialCategories = const [],
+    this.fetchSuggestions,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  State<CategorySelector> createState() => _CategorySelectorState();
+}
+
+class _CategorySelectorState extends State<CategorySelector> {
+  final TextEditingController _controller = TextEditingController();
+  late List<String> _categories;
+
+  @override
+  void initState() {
+    super.initState();
+    _categories = [...widget.initialCategories];
+  }
+
+  void _addCategory(String label) {
+    label = label.trim();
+    if (label.isNotEmpty && !_categories.contains(label)) {
+      setState(() {
+        _categories.add(label);
+      });
+      widget.onChanged(_categories);
+      _controller.clear();
+    }
+  }
+
+  void _removeCategory(String label) {
+    setState(() {
+      _categories.remove(label);
+    });
+    widget.onChanged(_categories);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Categories", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          children: _categories.map((cat) => Chip(
+            label: Text(cat),
+            onDeleted: () => _removeCategory(cat),
+            deleteIcon: const Icon(Icons.cancel, size: 18),
+            backgroundColor: Colors.purple.shade100,
+          )).toList(),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                decoration: const InputDecoration(
+                  labelText: "Add category",
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: _addCategory,
+              ),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              onPressed: () => _addCategory(_controller.text),
+              icon: const Icon(Icons.add),
+              label: const Text("Add"),
+            ),
+          ],
+        ),
+        if (widget.fetchSuggestions != null) ...[
+          const SizedBox(height: 10),
+          FutureBuilder<List<String>>(
+            future: widget.fetchSuggestions!(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox();
+              final available = snapshot.data!.where((cat) => !_categories.contains(cat)).toList();
+              return Wrap(
+                spacing: 6,
+                children: available.map((cat) => ActionChip(
+                  label: Text(cat),
+                  onPressed: () => _addCategory(cat),
+                  backgroundColor: Colors.grey.shade300,
+                )).toList(),
+              );
+            },
+          ),
+        ],
+      ],
     );
   }
 }
