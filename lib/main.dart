@@ -133,8 +133,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 }
 
-Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, ProductWithCategories? product, FoodEntry? food,bool toEdit) async {
-  final destAdd = [AddFoodPage(toEdit:toEdit,initialFood: food,initialProduct: product!.product),AddProductPage(title:toEdit?"Edit product":"Add product",initialProduct: product.product,initialCategories: product.categories,)];
+Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, ProductWithCategories? product, FoodEntry? food, bool toEdit) async {
+  final destAdd = [AddFoodPage(toEdit:toEdit, initialFood: food, initialProduct: product?.product), AddProductPage(title:toEdit ? "Edit product" : "Add product", initialProduct: product?.product, initialCategories: product?.categories,)];
   final result = await Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => destAdd[currentIndex]),
@@ -145,8 +145,8 @@ Future<void> navigateAndDisplayAddPage(BuildContext context, int currentIndex, P
   // After the Selection Screen returns a result, hide any previous snackbars
   // and show the new result.
   if (result != null) {
-    var name = ["food","product"];
-    var prefix = toEdit? "Edited":"Added";
+    var name = ["food", "product"];
+    var prefix = toEdit ? "Edited" : "Added";
     ScaffoldMessenger.of(context)
       ..removeCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('${prefix} ${name[currentIndex]}: $result')));

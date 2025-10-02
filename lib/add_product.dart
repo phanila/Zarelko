@@ -9,7 +9,7 @@ class AddProductPage extends StatefulWidget {
   const AddProductPage({
     super.key,
     this.initialProduct,
-    this. initialCategories,
+    this.initialCategories,
     required this.title,
   });
 
@@ -100,7 +100,7 @@ class _ProductFormState extends State<ProductForm> {
     _openLife = widget.initialOpenLife ?? 1;
     _storingLocation = widget.initialStoringLocation;
     _openLocation = widget.initialOpenLocation;
-    _selectedCategories = widget.initialCategories!;
+    _selectedCategories = widget.initialCategories ?? [];
   }
 
   @override
